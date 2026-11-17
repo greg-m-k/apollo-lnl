@@ -48,6 +48,8 @@ are shared and read-only; visitor rows are cleared 20 minutes after they were wr
 
 ## Run locally
 
+Everything runs on your laptop from a fresh clone: all eleven Workers, the D1 databases, the Queues and the Durable Objects run under wrangler dev. You need Node 22 or newer and nothing else, no Cloudflare account. The live site at https://lnl.greg.kitchen is the same code deployed.
+
     npm install
     npm run dev          # applies local D1 migrations, serves everything on http://localhost:8800
 
