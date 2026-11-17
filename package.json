@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "test": "vitest run",
+    "e2e": "node --test test/e2e.mjs",
     "dev": "node scripts/dev.mjs"
   },
   "dependencies": {
