@@ -43,10 +43,16 @@
       <table class="kv" id="fed-result"></table>
       <div class="pane-title">Console</div>
       <pre class="console" id="fed-log"></pre>
+      <p class="status" id="fed-db-note">The console splits the time in the browser into the trip to the router and back, the router's
+        own work (reading the query, planning it, merging the replies) and its wait for the subgraphs. Each subgraph's database time is
+        included in that subgraph's time, so the two do not add up.</p>
     </section>
     <section class="panel evt">
       <h2>Event-driven projections</h2>
       <p class="desc">One REST call to the query service. It reads three local tables that a consumer filled from events earlier.</p>
+      <p class="status" id="evt-feed">Before this read, in the background: HR, Employment and Security each write a change and an
+        event to their outbox, a relay publishes the event to a queue, and a consumer applies it to these tables. The read does not wait
+        for any of that. <a href="/write/">Write, then read</a> times it.</p>
       <div class="pane-title">Request</div>
       <pre id="evt-code"></pre>
       <div class="pane-title">Timeline (measured)</div>
@@ -69,6 +75,13 @@
   <div class="callout insight" id="insight">Federation's total is roughly <em>router + HR + the slower of Employment and Security</em>:
     the two run side by side, but both wait for HR, because they need the Person it returns. The projection's total is one database read,
     whatever the three teams' services are doing.</div>
+
+  <div class="callout insight" id="data-age">The speed has a price, and the answer shows it. Federation's answer is live: each part
+    comes from its owner at the moment you ask. The projection's answer is a copy, and <em>data age</em> is how long ago
+    the oldest of the three parts was last changed by an event. The rows under it give each part's age. For the seed people this is hours or days, because
+    nothing has changed them since the site was set up, and their copy is still correct. Age becomes a problem only when the owner has
+    changed something the copy has not caught up with yet. <a href="/write/">Write, then read</a> measures that gap, and
+    <a href="/bus/">When the bus stops</a> shows it growing.</div>
 </main>
 <script type="module" src="./read.js"></script>
 </body>

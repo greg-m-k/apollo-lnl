@@ -77,9 +77,8 @@ footer.site { border-top: 1px solid var(--border); margin-top: 45px; padding: 22
 
 /* Demo panels */
 .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin: 16px 0; }
-.panel.fed { border-top: 3px solid var(--fed); }
-.panel.evt { border-top: 3px solid var(--evt); }
 .panel > .desc { color: var(--muted); margin: 0 0 10px; }
+.panel > .desc + p { margin-top: 1em; }  /* a note under the description keeps the paragraph gap */
 .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 8px 0; }
 .bar label { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; max-width: 100%; font-size: .9rem; color: var(--muted); }
 .bar select { max-width: 100%; min-width: 0; text-overflow: ellipsis; }
