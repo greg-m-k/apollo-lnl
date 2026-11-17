@@ -96,6 +96,26 @@ read:   client ──▶ query service ──▶ projection (one local read)</pr
   <div class="callout insight">Federated services buy freshness and simplicity and pay with coupling at
     read time. Event-driven projections buy fast, independent reads and pay with staleness and more machinery. Many systems use both:
     federate the few fields that must be live, and project the rest.</div>
+
+  <h2>Further reading</h2>
+  <ul id="further-reading">
+    <li><a href="https://martinfowler.com/bliki/DomainDrivenDesign.html">Domain Driven Design</a>, Martin Fowler. A short introduction to the approach that
+      the words "domain" and "domain service" on this page come from.</li>
+    <li><a href="https://martinfowler.com/bliki/BoundedContext.html">Bounded Context</a>, Martin Fowler. Why "active" can mean three different things in HR,
+      Employment and Security, and how large systems are split along those lines.</li>
+    <li><a href="https://martinfowler.com/bliki/UbiquitousLanguage.html">Ubiquitous Language</a>, Martin Fowler. The shared vocabulary inside one bounded
+      context.</li>
+    <li><a href="https://martinfowler.com/eaaDev/DomainEvent.html">Domain Event</a>, Martin Fowler. Recording something that happened in a domain as an
+      object of its own, which is what the event-driven pattern publishes.</li>
+    <li><a href="https://martinfowler.com/articles/201701-event-driven.html">What do you mean by "Event-Driven"?</a>, Martin Fowler. Four different things
+      people mean by event-driven. The projections here use event-carried state transfer.</li>
+    <li><a href="https://martinfowler.com/bliki/CQRS.html">CQRS</a>, Martin Fowler. Separate models for writing and reading: the projection is a read model.</li>
+    <li><a href="https://martinfowler.com/eaaDev/EventSourcing.html">Event Sourcing</a>, Martin Fowler. Keeping the events as the record itself, a step
+      further than the outbox here.</li>
+    <li><a href="https://martinfowler.com/articles/microservices.html">Microservices</a>, James Lewis and Martin Fowler, and
+      <a href="https://martinfowler.com/articles/microservice-trade-offs.html">Microservice Trade-Offs</a>, Martin Fowler. Why services get their own
+      databases, and what that costs in consistency and operations.</li>
+  </ul>
 </main>
 <script type="module">import { crumbs } from "/lib/ui.js"; crumbs();</script>
 </body>

@@ -166,6 +166,21 @@ test("paragraphs have visible space between them on every page", async () => {
   }
 });
 
+test("start here: further reading links Martin Fowler on bounded contexts, DDD and event-driven systems", async () => {
+  await page.goto(`${BASE}/start/`);
+  const links = await page.locator("#further-reading a").evaluateAll((as) => as.map((a) => a.href));
+  for (const path of ["bliki/BoundedContext.html", "bliki/DomainDrivenDesign.html", "articles/201701-event-driven.html", "bliki/CQRS.html"])
+    assert.ok(links.includes(`https://martinfowler.com/${path}`), path);
+});
+
+test("inline code reads as a chip with its own background, and topic emoji are ones every system can draw", async () => {
+  await page.goto(`${BASE}/start/`);
+  const bg = await page.locator("p code").first().evaluate((e) => getComputedStyle(e).backgroundColor);
+  assert.notEqual(bg, "rgba(0, 0, 0, 0)");
+  await page.goto(BASE);
+  assert.doesNotMatch(await page.textContent("main"), /🪝/);
+});
+
 test("every page fits a phone screen without sideways scrolling", async () => {
   await page.setViewportSize({ width: 390, height: 800 });
   for (const path of ["", "start/", "read/", "failure/", "write/", "bus/", "tradeoffs/", "port/"]) {
