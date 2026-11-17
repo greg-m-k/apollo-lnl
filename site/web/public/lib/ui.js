@@ -26,9 +26,12 @@ export function el(tag, attrs = {}, ...children) {
 
 export function crumbs() {
   const here = location.pathname.endsWith("/") ? location.pathname : `${location.pathname}/`;
-  const nav = el("nav", { class: "crumbs", "aria-label": "Lessons" }, el("a", { href: "/" }, "Home"),
+  const nav = el("nav", { class: "crumbs", "aria-label": "Lessons" }, el("a", { href: "/" }, "← Home"),
     ...LESSONS.map(([href, title]) => el("a", { href, "aria-current": href === here ? "page" : null }, title)));
   document.querySelector("main").prepend(nav);
+  // On a phone the chips scroll sideways: bring the current lesson into view.
+  const current = nav.querySelector('[aria-current="page"]');
+  if (current) nav.scrollLeft = current.offsetLeft - nav.offsetLeft - 18;
   const next = LESSONS[LESSONS.findIndex(([href]) => href === here) + 1];
   if (next) document.querySelector("main").append(el("p", { class: "next" }, "Next: ", el("a", { href: next[0] }, `${next[1]} →`)));
   document.querySelector("main").append(el("footer", {},
