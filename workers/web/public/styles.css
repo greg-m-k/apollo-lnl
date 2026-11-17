@@ -68,7 +68,7 @@ button:disabled { opacity: .5; cursor: default; }
 .cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
 @media (max-width: 760px) { .cols { grid-template-columns: 1fr; } }
 .pane-title { font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--faint); margin: 10px 0 4px; }
-.console { min-height: 4.5em; max-height: 14em; overflow: auto; }
+.console { min-height: 4.5em; max-height: 14em; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
 .console .err { color: var(--fail); } .console .ok { color: var(--evt); } .console .wait { color: var(--wait); }
 .callout { border-left: 3px solid var(--wait); background: var(--wait-bg); padding: 8px 12px; border-radius: 0 8px 8px 0; margin: 12px 0; font-size: .92rem; }
 .callout.insight { border-color: var(--fed); background: var(--fed-bg); }

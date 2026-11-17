@@ -2,14 +2,15 @@
   // Projection consumer: the three topics in, local read models out.
   "name": "lnl-projection-consumer",
   "main": "src/index.js",
+  "workers_dev": false,  // internal: reached only through service bindings and queues
   "compatibility_date": "2026-11-01",
   "compatibility_flags": ["nodejs_compat"],
-  "d1_databases": [{ "binding": "DB", "database_name": "lnl-projections", "database_id": "local-lnl-projections", "migrations_dir": "migrations" }],
+  "d1_databases": [{ "binding": "DB", "database_name": "lnl-projections", "database_id": "176f9e8d-a38f-4a6b-bde8-9ac7aabc444d", "migrations_dir": "migrations" }],
   "queues": { "consumers": [
     { "queue": "lnl-events-hr-person", "max_batch_size": 10, "max_batch_timeout": 0, "max_retries": 100 },
     { "queue": "lnl-events-employment-employee", "max_batch_size": 10, "max_batch_timeout": 0, "max_retries": 100 },
     { "queue": "lnl-events-security-badge", "max_batch_size": 10, "max_batch_timeout": 0, "max_retries": 100 }
   ] },
-  "durable_objects": { "bindings": [{ "name": "LESSON", "class_name": "Lesson", "script_name": "lnl-web" }] },
+  "durable_objects": { "bindings": [{ "name": "LESSON", "class_name": "Lesson", "script_name": "lnl-lesson" }] },
   "triggers": { "crons": ["*/5 * * * *"] }
 }

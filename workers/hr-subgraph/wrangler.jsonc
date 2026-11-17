@@ -2,9 +2,10 @@
   // hr subgraph Worker with its own D1 database (apollo-demo hr_db).
   "name": "lnl-hr-subgraph",
   "main": "src/index.js",
+  "workers_dev": false,  // internal: reached only through service bindings and queues
   "compatibility_date": "2026-11-01",
   "compatibility_flags": ["nodejs_compat"],
   "rules": [{ "type": "Text", "globs": ["**/*.graphql"], "fallthrough": true }],
-  "d1_databases": [{ "binding": "DB", "database_name": "lnl-hr", "database_id": "local-lnl-hr", "migrations_dir": "migrations" }],
+  "d1_databases": [{ "binding": "DB", "database_name": "lnl-hr", "database_id": "de45fdd2-a7e8-4a48-a0e2-979eef75f000", "migrations_dir": "migrations" }],
   "triggers": { "crons": ["*/5 * * * *"] }
 }

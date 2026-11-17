@@ -1,0 +1,9 @@
+{
+  // Hosts the Lesson Durable Object class that web, the event services and the consumer bind to.
+  "name": "lnl-lesson",
+  "main": "src/index.js",
+  "compatibility_date": "2026-11-01",
+  "workers_dev": false,
+  "durable_objects": { "bindings": [{ "name": "LESSON", "class_name": "Lesson" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Lesson"] }]
+}

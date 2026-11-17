@@ -1,10 +1,7 @@
 // The Lunch & Learn site: static lesson pages plus one same-origin /api that forwards
-// to the demo's Workers over service bindings. It also hosts the per-session Lesson
-// switches (broker down, consumer paused) that the event side reads.
-import { Lesson } from "../../../shared/lesson.js";
+// to the demo's Workers over service bindings, and sets the per-session Lesson switches
+// (broker down, consumer paused) that the event side reads.
 import { sessionFrom } from "../../../shared/chaos.js";
-
-export { Lesson };
 
 // /api/<prefix>/rest -> [binding, path prefix on that Worker]
 const UPSTREAM = {

@@ -2,6 +2,7 @@
   // Federation router Worker (Hive Gateway over the committed supergraph).
   "name": "lnl-router",
   "main": "src/index.js",
+  "workers_dev": false,  // internal: reached only through service bindings and queues
   "compatibility_date": "2026-11-01",
   "compatibility_flags": ["nodejs_compat"],
   "rules": [{ "type": "Text", "globs": ["**/*.graphql"], "fallthrough": true }],

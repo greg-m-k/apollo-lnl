@@ -6,7 +6,8 @@
     "test": "vitest run",
     "e2e": "node --test test/e2e.mjs",
     "dev": "node scripts/dev.mjs",
-    "ui": "node --test test/ui.mjs"
+    "ui": "node --test test/ui.mjs",
+    "deploy": "node scripts/deploy.mjs"
   },
   "dependencies": {
     "@apollo/subgraph": "^2.16.0",

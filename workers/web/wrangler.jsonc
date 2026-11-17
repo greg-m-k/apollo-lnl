@@ -13,6 +13,6 @@
     { "binding": "QUERY", "service": "lnl-query-service" },
     { "binding": "CONSUMER", "service": "lnl-projection-consumer" }
   ],
-  "durable_objects": { "bindings": [{ "name": "LESSON", "class_name": "Lesson" }] },
-  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Lesson"] }]
+  "durable_objects": { "bindings": [{ "name": "LESSON", "class_name": "Lesson", "script_name": "lnl-lesson" }] },
+  "routes": [{ "pattern": "lnl.greg.kitchen", "custom_domain": true }]
 }
