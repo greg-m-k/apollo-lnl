@@ -17,7 +17,7 @@
 
   <div class="panel">
     <h2>1. A person of your own</h2>
-    <p class="desc">Seed people are shared and read-only, so make one to change.</p>
+    <p class="desc">Seed people are shared and read-only, so make one to change. It is yours alone and is deleted 20 minutes after you make it.</p>
     <div class="bar">
       <label>Yours <select id="mine"><option value="">none yet</option></select></label>
       <button id="create">Create one</button>
@@ -61,8 +61,8 @@
   </div>
 
   <div class="callout insight">Nothing was lost: the outbox kept every event in the same transaction as the write, and the queue kept every
-    published event until the consumer applied it. Reads kept working throughout; they were just older. That is the event-driven bargain:
-    availability now, consistency eventually. Federation has no bus to stop, but its reads stop with the owning service.</div>
+    published event until the consumer applied it. Reads kept working throughout and were only behind.
+    Federated services have no bus, so this cannot happen to them; their reads fail when an owning service is down (lesson 2).</div>
 </main>
 <script type="module" src="./bus.js"></script>
 </body>

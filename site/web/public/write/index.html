@@ -23,6 +23,7 @@
       <button class="primary" id="run">▶ Create in both, then read</button>
       <span class="status" id="status">Ready</span>
     </div>
+    <p class="status">The people you create are yours alone and are deleted 20 minutes after you make them.</p>
   </div>
 
   <div class="cols">
@@ -51,7 +52,7 @@
     </section>
   </div>
 
-  <div class="callout insight">The race is the lesson: the event-driven write returns as fast or faster, but a read straight after it
+  <div class="callout insight">The event-driven write returns as fast or faster, but a read straight after it
     usually finds nothing, because the event is still on its way. Screens built on projections either wait for the event,
     show the write optimistically, or read that one record from its owner. The two sides also create different ids: in this demo they are
     separate systems, as they were in the Apollo version.</div>

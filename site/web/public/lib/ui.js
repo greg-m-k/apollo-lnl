@@ -34,8 +34,7 @@ export function crumbs() {
   if (current) nav.scrollLeft = current.offsetLeft - nav.offsetLeft - 18;
   const next = LESSONS[LESSONS.findIndex(([href]) => href === here) + 1];
   if (next) document.querySelector("main").append(el("p", { class: "next" }, "Next: ", el("a", { href: next[0] }, `${next[1]} →`)));
-  document.querySelector("main").append(el("footer", {},
-    "People you create are yours alone and are cleared 20 minutes after you make them. Lesson switches you turn on switch themselves off after 3 minutes."));
+  document.querySelector("main").append(el("footer", {}, "Made by ", el("a", { href: "https://greg.kitchen" }, "Greg Kitchen"), "."));
 }
 
 // A console pane: log(text, kind?) with kind "ok" | "err" | "wait".

@@ -102,6 +102,18 @@ test("blue and green belong to the two patterns: only their own panels carry the
   }
 });
 
+test("footers credit the author; notes about your data sit on the pages that make it", async () => {
+  for (const path of ["", "start/", "read/", "failure/", "write/", "bus/", "tradeoffs/", "port/"]) {
+    await page.goto(`${BASE}/${path}`);
+    await page.waitForSelector("footer");
+    assert.match(await page.textContent("footer"), /^Made by Greg Kitchen.$/, path || "home");
+    const text = await page.textContent("main");
+    assert.equal(/deleted 20 minutes after/.test(text), ["write/", "bus/"].includes(path), `20-minute note on ${path || "home"}`);
+    // Plain statements: no "Neither ...", no "X, not Y" contrasts, no slogans.
+    assert.doesNotMatch(text, /Neither|, not (a|an|the) |is the lesson|bargain/, path || "home");
+  }
+});
+
 test("every page fits a phone screen without sideways scrolling", async () => {
   await page.setViewportSize({ width: 390, height: 800 });
   for (const path of ["", "start/", "read/", "failure/", "write/", "bus/", "tradeoffs/", "port/"]) {

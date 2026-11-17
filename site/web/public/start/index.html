@@ -93,7 +93,7 @@ read:   client ──▶ query service ──▶ projection (one local read)</pr
     <li><a href="/tradeoffs/">So which one?</a>: measure both yourself and read the tradeoffs with your own numbers.</li>
     <li><a href="/port/">How this runs on Cloudflare</a>: what each part is built from.</li>
   </ol>
-  <div class="callout insight">Neither pattern is the better one. Federated services buy freshness and simplicity and pay with coupling at
+  <div class="callout insight">Federated services buy freshness and simplicity and pay with coupling at
     read time. Event-driven projections buy fast, independent reads and pay with staleness and more machinery. Many systems use both:
     federate the few fields that must be live, and project the rest.</div>
 </main>
