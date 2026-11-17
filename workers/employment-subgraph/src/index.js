@@ -1,5 +1,6 @@
 // Employment subgraph: owns Employee and adds Person.employee (apollo-demo employment-subgraph).
 import typeDefs from "../../../shared/schema/employment.graphql";
+import { sweeper } from "../../../shared/sweep.js";
 import { subgraph } from "../../../shared/subgraph.js";
 import { VISIBLE, bool, newId, ownRow, requireSession } from "../../../shared/rows.js";
 
@@ -61,4 +62,6 @@ export const resolvers = {
   },
 };
 
-export default subgraph({ name: "employment", typeDefs, resolvers });
+const scheduled = sweeper({ employees: "created_at" });
+
+export default { ...subgraph({ name: "employment", typeDefs, resolvers }), scheduled };

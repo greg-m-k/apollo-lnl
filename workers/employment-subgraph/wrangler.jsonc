@@ -5,5 +5,6 @@
   "compatibility_date": "2026-11-01",
   "compatibility_flags": ["nodejs_compat"],
   "rules": [{ "type": "Text", "globs": ["**/*.graphql"], "fallthrough": true }],
-  "d1_databases": [{ "binding": "DB", "database_name": "lnl-employment", "database_id": "local-lnl-employment", "migrations_dir": "migrations" }]
+  "d1_databases": [{ "binding": "DB", "database_name": "lnl-employment", "database_id": "local-lnl-employment", "migrations_dir": "migrations" }],
+  "triggers": { "crons": ["*/5 * * * *"] }
 }

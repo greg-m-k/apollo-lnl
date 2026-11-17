@@ -1,0 +1,18 @@
+{
+  // The Lunch & Learn site and its same-origin API gateway.
+  "name": "lnl-web",
+  "main": "src/index.js",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": { "directory": "./public", "binding": "ASSETS", "run_worker_first": ["/api/*"] },
+  "services": [
+    { "binding": "ROUTER", "service": "lnl-router" },
+    { "binding": "HR_EVENTS", "service": "lnl-hr-events" },
+    { "binding": "EMPLOYMENT_EVENTS", "service": "lnl-employment-events" },
+    { "binding": "SECURITY_EVENTS", "service": "lnl-security-events" },
+    { "binding": "QUERY", "service": "lnl-query-service" },
+    { "binding": "CONSUMER", "service": "lnl-projection-consumer" }
+  ],
+  "durable_objects": { "bindings": [{ "name": "LESSON", "class_name": "Lesson" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Lesson"] }]
+}

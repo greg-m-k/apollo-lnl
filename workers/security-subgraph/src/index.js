@@ -1,5 +1,6 @@
 // Security subgraph: owns BadgeHolder and adds Person.badge (apollo-demo security-subgraph).
 import typeDefs from "../../../shared/schema/security.graphql";
+import { sweeper } from "../../../shared/sweep.js";
 import { subgraph } from "../../../shared/subgraph.js";
 import { VISIBLE, bool, newId, ownRow, requireSession } from "../../../shared/rows.js";
 
@@ -62,4 +63,6 @@ export const resolvers = {
   },
 };
 
-export default subgraph({ name: "security", typeDefs, resolvers });
+const scheduled = sweeper({ badge_holders: "created_at" });
+
+export default { ...subgraph({ name: "security", typeDefs, resolvers }), scheduled };

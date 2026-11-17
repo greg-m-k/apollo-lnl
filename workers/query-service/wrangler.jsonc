@@ -1,0 +1,8 @@
+{
+  // Query service: read-only over the projections the consumer builds.
+  "name": "lnl-query-service",
+  "main": "src/index.js",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [{ "binding": "DB", "database_name": "lnl-projections", "database_id": "local-lnl-projections", "migrations_dir": "../projection-consumer/migrations" }]
+}

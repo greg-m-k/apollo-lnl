@@ -1,5 +1,6 @@
 // HR subgraph: owns Person, the canonical source of identity (apollo-demo hr-subgraph).
 import typeDefs from "../../../shared/schema/hr.graphql";
+import { sweeper } from "../../../shared/sweep.js";
 import { subgraph } from "../../../shared/subgraph.js";
 import { VISIBLE, bool, newId, ownRow, requireSession } from "../../../shared/rows.js";
 
@@ -50,4 +51,6 @@ export const resolvers = {
   },
 };
 
-export default subgraph({ name: "hr", typeDefs, resolvers });
+const scheduled = sweeper({ persons: "created_at" });
+
+export default { ...subgraph({ name: "hr", typeDefs, resolvers }), scheduled };

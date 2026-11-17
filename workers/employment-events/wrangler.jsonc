@@ -1,0 +1,15 @@
+{
+  // employment-events: REST writes + transactional outbox; the relay publishes to the lnl-events-employment-employee queue.
+  "name": "lnl-employment-events",
+  "main": "src/index.js",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [{ "binding": "DB", "database_name": "lnl-employment-events", "database_id": "local-lnl-employment-events", "migrations_dir": "migrations" }],
+  "queues": { "producers": [{ "binding": "TOPIC", "queue": "lnl-events-employment-employee" }] },
+  "durable_objects": { "bindings": [
+    { "name": "RELAY", "class_name": "OutboxRelay" },
+    { "name": "LESSON", "class_name": "Lesson", "script_name": "lnl-web" }
+  ] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["OutboxRelay"] }],
+  "triggers": { "crons": ["*/5 * * * *"] }
+}

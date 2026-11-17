@@ -1,0 +1,30 @@
+CREATE TABLE persons (
+  id TEXT PRIMARY KEY,
+  session TEXT NOT NULL DEFAULT '',
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  hire_date TEXT,
+  active INTEGER NOT NULL DEFAULT 1,
+  created_at INTEGER NOT NULL DEFAULT (unixepoch('subsec') * 1000),
+  UNIQUE (session, email)
+);
+
+CREATE TABLE outbox_events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  session TEXT NOT NULL DEFAULT '',
+  aggregate_type TEXT NOT NULL,
+  aggregate_id TEXT NOT NULL,
+  event_type TEXT NOT NULL,
+  payload TEXT NOT NULL,
+  created_at INTEGER NOT NULL,
+  published INTEGER NOT NULL DEFAULT 0,
+  published_at INTEGER
+);
+CREATE INDEX outbox_unpublished ON outbox_events (published, id);
+
+INSERT INTO persons (id, session, name, email, hire_date, active) VALUES
+  ('person-001', '', 'Alice Johnson', 'alice.johnson@company.com', '2020-01-15', 1),
+  ('person-002', '', 'Bob Smith', 'bob.smith@company.com', '2019-06-01', 1),
+  ('person-003', '', 'Carol Williams', 'carol.williams@company.com', '2021-03-20', 1),
+  ('person-004', '', 'David Brown', 'david.brown@company.com', '2018-11-10', 0),
+  ('person-005', '', 'Eva Martinez', 'eva.martinez@company.com', '2022-08-05', 1);
