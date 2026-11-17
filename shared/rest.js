@@ -12,6 +12,12 @@ export class HttpError extends Error {
 
 // routes: [[method, /regex with named groups/, handler({ params, query, body, env, ctx, session, timing })]]
 // timingPrefix: e.g. "x-hr-events" adds x-hr-events-time-ms and x-hr-events-timing-details.
+// A handler returns its body, or reply(status, body) for anything other than 200.
+class Reply {
+  constructor(status, body) { this.status = status; this.body = body; }
+}
+export const reply = (status, body) => new Reply(status, body);
+
 export function restService(routes, { timingPrefix } = {}) {
   return async (request, env, ctx) => {
     const url = new URL(request.url);
@@ -27,7 +33,7 @@ export function restService(routes, { timingPrefix } = {}) {
         params: url.pathname.match(re).groups ?? {}, query: url.searchParams, body, env, ctx,
         session: sessionFrom(request), timing,
       });
-      [status, payload] = Array.isArray(out) ? out : [200, out];
+      [status, payload] = out instanceof Reply ? [out.status, out.body] : [200, out];
     } catch (e) {
       if (!(e instanceof HttpError)) throw e;
       [status, payload] = [e.status, e.body];

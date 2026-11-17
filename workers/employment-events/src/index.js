@@ -1,5 +1,5 @@
 // Employment events service (apollo-demo employment-events-service), topic employment.employee.
-import { restService, need, HttpError } from "../../../shared/rest.js";
+import { restService, reply, need, HttpError } from "../../../shared/rest.js";
 import { sweeper } from "../../../shared/sweep.js";
 import { OutboxRelay, backlog } from "../../../shared/outbox.js";
 import { eventEntity } from "../../../shared/event-entity.js";
@@ -30,7 +30,7 @@ const routes = [
     const { personId, title, department, salary } = need(r.body, "personId", "title", "department", "salary");
     if (await byPerson(r.env, personId, r.session)) throw new HttpError(409, "Person already has an employee record");
     const e = { id: newId("emp"), personId, title, department, salary: Number(salary), active: true };
-    return [201, await employees.insert(r, e, "EmployeeAssigned")];
+    return reply(201, await employees.insert(r, e, "EmployeeAssigned"));
   }],
   ["PUT", /^\/api\/employees\/(?<id>[^/]+)\/promote$/, async (r) => {
     const e = await employees.own(r);

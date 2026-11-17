@@ -91,3 +91,12 @@ test("an employee and a badge join the composed view", async () => {
   }));
   assert.equal((await api(s, "employment-events/employees", { method: "POST", body: JSON.stringify({ personId: id, title: "x", department: "y", salary: 1 }) })).status, 409);
 });
+
+test("list endpoints answer with arrays", async () => {
+  for (const path of ["query/persons", "query/employees", "query/badges", "hr-events/persons",
+    "employment-events/employees", "security-events/badges"]) {
+    const res = await api(session(), path);
+    assert.equal(res.status, 200, path);
+    assert.ok(Array.isArray(await res.json()), path);
+  }
+});

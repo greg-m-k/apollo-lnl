@@ -1,5 +1,5 @@
 // Security events service (apollo-demo security-events-service), topic security.badge.
-import { restService, need, HttpError } from "../../../shared/rest.js";
+import { restService, reply, need, HttpError } from "../../../shared/rest.js";
 import { sweeper } from "../../../shared/sweep.js";
 import { OutboxRelay, backlog } from "../../../shared/outbox.js";
 import { eventEntity } from "../../../shared/event-entity.js";
@@ -45,7 +45,7 @@ const routes = [
       accessLevel: oneOf(LEVELS, accessLevel, "accessLevel"), clearance: oneOf(CLEARANCES, clearance, "clearance"),
       active: true,
     };
-    return [201, await badges.insert(r, b, "BadgeProvisioned")];
+    return reply(201, await badges.insert(r, b, "BadgeProvisioned"));
   }],
   ["PUT", /^\/api\/badges\/(?<id>[^/]+)\/access-level$/, async (r) =>
     badges.update(r, { ...(await badges.own(r)), accessLevel: oneOf(LEVELS, r.query.get("level"), "level") },

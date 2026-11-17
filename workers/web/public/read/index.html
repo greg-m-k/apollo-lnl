@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>One question, three services · Lunch & Learn</title>
+<link rel="stylesheet" href="/styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='9' cy='16' r='6' fill='%232563eb'/%3E%3Ccircle cx='23' cy='16' r='6' fill='%2316a34a'/%3E%3C/svg%3E">
+</head>
+<body>
+<main>
+  <h1>One question, three services</h1>
+  <p class="lead">"Who is this person, what is their job, and what badge do they carry?" Three teams own those three answers.
+    Federation asks all three, live, on every request. The event-driven side asks one service that already holds a copy.</p>
+
+  <div class="panel">
+    <div class="bar">
+      <label>Person <select id="person"><option value="person-001">Alice Johnson (person-001)</option></select></label>
+      <button class="primary" id="run">▶ Ask both</button>
+      <span class="status" id="status">Ready</span>
+    </div>
+    <div class="bar">
+      <label>Extra latency: HR <input type="range" id="d-hr" min="0" max="1500" step="50" value="0"><output id="o-hr">0ms</output></label>
+      <label>Employment <input type="range" id="d-employment" min="0" max="1500" step="50" value="0"><output id="o-employment">0ms</output></label>
+      <label>Security <input type="range" id="d-security" min="0" max="1500" step="50" value="0"><output id="o-security">0ms</output></label>
+    </div>
+    <p class="status">The sliders slow a federation subgraph down. Try Employment at 600ms, then Security at 600ms too: does the total double?</p>
+  </div>
+
+  <div class="cols">
+    <section class="panel fed">
+      <h2>GraphQL Federation</h2>
+      <p class="desc">One query to the router. It plans: fetch the Person from HR, then ask Employment and Security for their parts in parallel.</p>
+      <div class="pane-title">Query</div>
+      <pre id="fed-code"></pre>
+      <div class="pane-title">Timeline (measured)</div>
+      <div class="timeline" id="fed-timeline"><p class="status">Run it to see each hop.</p></div>
+      <div class="legend"><span><i style="background:var(--fed)"></i>subgraph call</span><span><i style="background:var(--fail)"></i>failed</span></div>
+      <div class="pane-title">Answer</div>
+      <table class="kv" id="fed-result"></table>
+      <div class="pane-title">Console</div>
+      <pre class="console" id="fed-log"></pre>
+    </section>
+    <section class="panel evt">
+      <h2>Event-driven projection</h2>
+      <p class="desc">One REST call to the query service. It reads three local tables that a consumer filled from events earlier.</p>
+      <div class="pane-title">Request</div>
+      <pre id="evt-code"></pre>
+      <div class="pane-title">Timeline (measured)</div>
+      <div class="timeline" id="evt-timeline"><p class="status">Run it to see the one hop.</p></div>
+      <div class="legend"><span><i style="background:var(--evt)"></i>local read</span></div>
+      <div class="pane-title">Answer</div>
+      <table class="kv" id="evt-result"></table>
+      <div class="pane-title">Console</div>
+      <pre class="console" id="evt-log"></pre>
+    </section>
+  </div>
+
+  <div class="callout insight" id="insight">Federation's total is roughly <em>router + HR + the slower of Employment and Security</em>:
+    the two run side by side, but both wait for HR, because they need the Person it returns. The projection's total is one database read,
+    whatever the three teams' services are doing.</div>
+</main>
+<script type="module" src="./read.js"></script>
+</body>
+</html>

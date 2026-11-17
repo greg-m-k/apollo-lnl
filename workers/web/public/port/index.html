@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How this runs on Cloudflare · Lunch & Learn</title>
+<link rel="stylesheet" href="/styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='9' cy='16' r='6' fill='%232563eb'/%3E%3Ccircle cx='23' cy='16' r='6' fill='%2316a34a'/%3E%3C/svg%3E">
+</head>
+<body>
+<main>
+  <h1>How this runs on Cloudflare</h1>
+  <p class="lead">The original demo runs on Kubernetes with Tilt: Quarkus services, the Apollo Router, Kafka and Postgres.
+    This Lunch &amp; Learn runs the same domain, schemas, seed data and APIs as ten Cloudflare Workers.</p>
+
+  <div class="panel">
+    <table class="kv">
+      <tr><th>apollo-demo</th><td><strong>Here</strong></td></tr>
+      <tr><th>Apollo Router 2 + supergraph.graphql + timing.rhai</th><td>Router Worker running Hive Gateway over the same composed supergraph; it copies each subgraph's timing headers onto the response, as the Rhai script did, and records every subgraph call for the timelines</td></tr>
+      <tr><th>hr / employment / security subgraphs (Quarkus, SmallRye GraphQL)</th><td>Three Workers: GraphQL Yoga with <code>@apollo/subgraph</code>, the original SDL unchanged, including <code>@key</code> and <code>@extends</code></td></tr>
+      <tr><th>Cluster DNS between router and subgraphs</th><td>Service bindings: Worker-to-Worker calls with no public network hop</td></tr>
+      <tr><th>Postgres databases (hr_db, employment_db, security_db, *_events_db, projections_db)</th><td>Seven D1 databases, one per original database</td></tr>
+      <tr><th>Event services with a transactional outbox (Quarkus, Panache)</th><td>Three Workers; entity row and outbox row commit in one D1 batch</td></tr>
+      <tr><th>Outbox relay, <code>@Scheduled(every = "1s")</code></th><td>An OutboxRelay Durable Object per service: woken by each write, then polls every second while rows wait</td></tr>
+      <tr><th>Kafka topics events.hr.person, events.employment.employee, events.security.badge</th><td>Three Cloudflare Queues</td></tr>
+      <tr><th>Projection consumer (SmallRye Reactive Messaging)</th><td>A queue consumer Worker; same snapshot upsert and processed-events idempotency. Propagation timing is stored in D1 for all three topics instead of in memory for persons only</td></tr>
+      <tr><th>Query service</th><td>A Worker over the projections D1 with the same composed view and freshness format</td></tr>
+      <tr><th><code>kubectl scale … --replicas=0</code></th><td>Per-visitor lesson switches: a request header for subgraph outages and latency, and a Lesson Durable Object for broker down and consumer paused</td></tr>
+      <tr><th>React dashboard (nginx)</th><td>These pages, served by the web Worker, which also forwards <code>/api</code> to the others</td></tr>
+    </table>
+  </div>
+
+  <div class="callout">What is different on purpose: every visitor gets their own session, so one person's outage or new hire never
+    shows up in anyone else's lesson. Seed people are shared and read-only, and anything you create is cleared after 20 minutes.
+    Latencies are Cloudflare's, not a laptop cluster's, so the absolute numbers differ from the original; the shapes are the same.</div>
+</main>
+<script type="module">import { crumbs } from "/lib/ui.js"; crumbs();</script>
+</body>
+</html>

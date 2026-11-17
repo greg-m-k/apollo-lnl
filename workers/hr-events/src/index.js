@@ -1,6 +1,6 @@
 // HR events service: REST writes to its own D1 plus an outbox row, published to the
 // hr.person topic by the relay (apollo-demo hr-events-service).
-import { restService, need } from "../../../shared/rest.js";
+import { restService, reply, need } from "../../../shared/rest.js";
 import { sweeper } from "../../../shared/sweep.js";
 import { OutboxRelay, backlog } from "../../../shared/outbox.js";
 import { eventEntity } from "../../../shared/event-entity.js";
@@ -21,7 +21,7 @@ const routes = [
   ["POST", /^\/api\/persons$/, async (r) => {
     const { name, email, hireDate } = need(r.body, "name", "email");
     const p = { id: newId("person"), name, email, hireDate: hireDate ?? null, active: true };
-    return [201, await persons.insert(r, p, "PersonCreated")];
+    return reply(201, await persons.insert(r, p, "PersonCreated"));
   }],
   ["PUT", /^\/api\/persons\/(?<id>[^/]+)$/, async (r) => {
     const p = await persons.own(r);
