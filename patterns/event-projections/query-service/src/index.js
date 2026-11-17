@@ -35,6 +35,7 @@ async function composedView(c) {
 // has nulls there. `freshness` says how old the oldest part is.
 export function composed(p, e, b, now = Date.now()) {
   const updated = (row) => (row ? new Date(row.last_updated).toISOString() : null);
+  const age = (row) => (row ? human(now - row.last_updated) : null);
   const maxLagMs = Math.max(...[p, e, b].filter(Boolean).map((row) => now - row.last_updated));
   return {
     personId: p.id, name: p.name, email: p.email, hireDate: p.hire_date, personActive: p.active === 1,
@@ -47,6 +48,7 @@ export function composed(p, e, b, now = Date.now()) {
     freshness: {
       personLastUpdated: updated(p), employeeLastUpdated: updated(e), badgeLastUpdated: updated(b),
       maxLagMs, dataFreshness: human(maxLagMs),
+      personAge: age(p), employeeAge: age(e), badgeAge: age(b),
     },
   };
 }
@@ -77,7 +79,9 @@ async function freshness(c) {
 function human(ms) {
   if (ms < 1000) return `${ms}ms`;
   if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
-  return `${(ms / 60000).toFixed(1)}m`;
+  if (ms < 3600000) return `${(ms / 60000).toFixed(1)}m`;
+  if (ms < 86400000) return `${(ms / 3600000).toFixed(1)}h`;
+  return `${(ms / 86400000).toFixed(1)}d`;
 }
 
 let served = 0;  // requests this copy of the service has served; 1 means it has just started

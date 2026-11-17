@@ -55,7 +55,7 @@
     <ul>
       <li>Security off: federation returns the name and job but <code>badge: null</code>. Is a half answer better than none for your screen?</li>
       <li>HR off: Employment and Security are fine, yet federation returns nothing at all. HR owns the Person every other part hangs off.</li>
-      <li>Everything off: the projection still answers. Note its data freshness: nothing is updating it while the owners are down.</li>
+      <li>Everything off: the projection still answers. Note its data age: nothing is updating it while the owners are down.</li>
     </ul>
     In the Apollo version this lesson meant <code>kubectl scale deployment security-subgraph --replicas=0</code>. Here a switch on your request tells that subgraph to fail, for you only.</div>
 </main>

@@ -52,7 +52,7 @@ const field = (answer, key) => answer.data?.[key] ?? null;
 // Show the owners' data against the projection's; true when they agree.
 function compare(source, seen, freshness) {
   kv($("#source"), [["name", source.name], ["title", source.title]]);
-  kv($("#projection"), [["name", seen.name], ["title", seen.title], ["data freshness", freshness]]);
+  kv($("#projection"), [["name", seen.name], ["title", seen.title], ["data age (oldest part)", freshness]]);
   const inSync = source.name === seen.name && source.title === seen.title;
   say($("#sync"), inSync ? "in sync ✓" : "behind…", inSync ? "ok" : "wait");
   return inSync;

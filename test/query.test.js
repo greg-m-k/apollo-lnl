@@ -25,8 +25,14 @@ test("missing parts are null and inactive", () => {
 test("freshness is the age of the oldest part, formatted like the apollo-demo", () => {
   expect(composed(person, employee, null, 5000).freshness).toEqual({
     personLastUpdated: "1970-01-01T00:00:01.000Z", employeeLastUpdated: "1970-01-01T00:00:04.000Z", badgeLastUpdated: null,
-    maxLagMs: 4000, dataFreshness: "4.0s",
+    maxLagMs: 4000, dataFreshness: "4.0s", personAge: "4.0s", employeeAge: "1.0s", badgeAge: null,
   });
   expect(composed({ ...person, last_updated: 4750 }, null, null, 5000).freshness.dataFreshness).toBe("250ms");
   expect(composed({ ...person, last_updated: 0 }, null, null, 90000).freshness.dataFreshness).toBe("1.5m");
+});
+
+test("ages of hours and days read as hours and days, so a seed person is not shown in thousands of minutes", () => {
+  const hour = 3600000;
+  expect(composed({ ...person, last_updated: 0 }, null, null, 3 * hour).freshness.dataFreshness).toBe("3.0h");
+  expect(composed({ ...person, last_updated: 0 }, null, null, 60 * hour).freshness.dataFreshness).toBe("2.5d");
 });

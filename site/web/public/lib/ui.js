@@ -120,5 +120,9 @@ export function fedRows(p) {
 export function evtRows(v) {
   if (!v?.personId) return [["person", null]];
   return [["name", v.name], ["email", v.email], ["title", v.title], ["department", v.department],
-    ["badgeNumber", v.badgeNumber], ["accessLevel", v.accessLevel], ["data freshness", v.freshness?.dataFreshness]];
+    ["badgeNumber", v.badgeNumber], ["accessLevel", v.accessLevel], ["data age (oldest part)", v.freshness?.dataFreshness],
+    ...["person", "employee", "badge"].map((part) => {
+      const age = v.freshness?.[`${part}Age`];
+      return [`${part} updated`, age == null ? null : `${age} ago`];
+    })];
 }
