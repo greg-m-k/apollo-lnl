@@ -78,7 +78,9 @@ footer.site { border-top: 1px solid var(--border); margin-top: 45px; padding: 22
 .panel.evt { border-top: 3px solid var(--evt); }
 .panel > .desc { color: var(--muted); margin: 0 0 10px; }
 .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 8px 0; }
-.bar label { display: inline-flex; align-items: center; gap: 6px; font-size: .9rem; color: var(--muted); }
+.bar label { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; max-width: 100%; font-size: .9rem; color: var(--muted); }
+.bar select { max-width: 100%; min-width: 0; text-overflow: ellipsis; }
+.bar input[type="range"] { flex: 1 1 110px; min-width: 0; }
 .status { font-size: .85rem; color: var(--muted); }
 .status.ok { color: var(--evt); } .status.err { color: var(--fail); } .status.wait { color: var(--wait); }
 .cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }

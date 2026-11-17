@@ -20,7 +20,10 @@ const shot = (name) => SHOTS && page.screenshot({ path: `${SHOTS}/${name}.png`, 
 
 test("home lists the start page and the six lessons", async () => {
   await page.goto(BASE);
-  assert.equal(await page.locator(".card").count(), 7);
+  assert.equal(await page.locator("#topic-0 ~ .cards .card").count(), 7);
+  // The useEffect topic is its own repository and Worker, served below /effects/.
+  assert.equal(await page.locator('#topic-1 ~ .cards a.card[href^="/effects/"]').count(), 7);
+  assert.equal(await page.locator('.topic a[href="https://github.com/greg-m-k/useeffect-lnl"]').count(), 1);
   assert.match(await page.textContent("header"), /Nothing here is mocked/);
   assert.match(await page.textContent("header strong"), /format/);
   assert.equal(await page.locator('header a[href="https://lnl.sam-peterson.com"]').count(), 1, "credits where the format comes from");
@@ -157,7 +160,11 @@ test("every page fits a phone screen without sideways scrolling", async () => {
   await page.setViewportSize({ width: 390, height: 800 });
   for (const path of ["", "start/", "read/", "failure/", "write/", "bus/", "tradeoffs/", "port/"]) {
     await page.goto(`${BASE}/${path}`);
-    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), 0, path || "home");
+    await page.waitForLoadState("networkidle");  // measure the finished page, not one mid-script
+    const [over, wide] = await page.evaluate(() => [document.documentElement.scrollWidth - innerWidth,
+      [...document.querySelectorAll("body *")].filter((e) => !e.closest(".crumbs, pre") && e.getBoundingClientRect().right > innerWidth + 1).slice(0, 3)
+        .map((e) => `${e.tagName.toLowerCase()}.${e.className} in ${e.parentElement.className || e.parentElement.tagName}`)]);
+    assert.equal(over, 0, `${path || "home"}: ${wide.join(", ")}`);
   }
   await page.setViewportSize({ width: 1280, height: 900 });
 });
