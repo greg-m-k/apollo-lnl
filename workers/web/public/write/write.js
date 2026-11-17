@@ -1,5 +1,5 @@
-import { federation, rest, until, emailFor } from "../lib/api.js";
-import { $, crumbs, logger, timeline, busy } from "../lib/ui.js";
+import { federation, rest, composedView, until, createPerson, emailFor } from "../lib/api.js";
+import { $, crumbs, logger, timeline, fedLanes, busy, say } from "../lib/ui.js";
 import { pipeline, fromTiming } from "../lib/pipeline.js";
 
 crumbs();
@@ -7,27 +7,30 @@ const fedLog = logger($("#fed-log"));
 const evtLog = logger($("#evt-log"));
 pipeline($("#pipeline"), {});
 $("#name").addEventListener("input", (e) => { $("#email").value = emailFor(e.target.value); });
-const gqlString = (s) => JSON.stringify(s);
+
+// The big "read right after the write" result. tone is a colour token: evt, wait or fail.
+function verdict(node, text, tone) {
+  node.textContent = text;
+  node.style.color = `var(--${tone})`;
+}
 
 async function federationSide(name, email) {
-  const mutation = `mutation { createPerson(name: ${gqlString(name)}, email: ${gqlString(email)}) { id name } }`;
+  const mutation = createPerson(name, email);
   $("#fed-code").textContent = mutation;
   const w = await federation(mutation);
   const id = w.body.data?.createPerson?.id;
-  if (!id) {
-    fedLog.log(`write failed: ${w.body.errors?.[0]?.message}`, "err");
-    return;
-  }
-  const r = await federation(`{ person(id: "${id}") { id name } }`);
-  timeline($("#fed-timeline"), [
-    { name: "Write (router)", start: 0, end: w.router, kind: "fed" },
-    ...w.fetches.map((f) => ({ name: `→ ${f.subgraph}`, start: f.start, end: f.end, kind: "fed" })),
-    { name: "Read it back", start: w.total, end: w.total + (r.router ?? r.total), kind: "fed" },
-  ]);
+  if (!id) return fedLog.log(`write failed: ${w.body.errors?.[0]?.message}`, "err");
+  showReadBack(w, id, await federation(`{ person(id: "${id}") { id name } }`));
+}
+
+function showReadBack(w, id, r) {
   const found = Boolean(r.body.data?.person);
-  $("#fed-read").textContent = found ? "found ✓" : "not found";
-  $("#fed-read").style.color = found ? "var(--evt)" : "var(--fail)";
-  fedLog.log(`created ${id} in ${w.total}ms (HR DB write ${w.subgraphs.hr.details?.db_write ?? "?"}ms); read back at once: ${found ? "found" : "missing"}`, found ? "ok" : "err");
+  timeline($("#fed-timeline"), [...fedLanes(w, "Write (router)"),
+    { name: "Read it back", start: w.total, end: w.total + (r.router ?? r.total), kind: "fed" }]);
+  verdict($("#fed-read"), found ? "found ✓" : "not found", found ? "evt" : "fail");
+  const dbWrite = w.subgraphs.hr.details?.db_write ?? "?";
+  fedLog.log(`created ${id} in ${w.total}ms (HR DB write ${dbWrite}ms); read back at once: ${found ? "found" : "missing"}`,
+    found ? "ok" : "err");
 }
 
 async function eventSide(name, email) {
@@ -37,38 +40,38 @@ async function eventSide(name, email) {
   const w = await rest("hr-events/persons", { method: "POST", body });
   if (!w.ok) {
     pipeline($("#pipeline"), { write: { status: "fail" } });
-    evtLog.log(`write failed: ${w.status} ${JSON.stringify(w.data)}`, "err");
-    return;
+    return evtLog.log(`write failed: ${w.status} ${JSON.stringify(w.data)}`, "err");
   }
-  const id = w.data.id;
   pipeline($("#pipeline"), { write: { status: "done", ms: w.server }, relay: { status: "wait" } });
-  evtLog.log(`created ${id}: API answered in ${w.total}ms (DB + outbox ${w.details?.db_write_and_outbox ?? "?"}ms)`, "ok");
+  evtLog.log(`created ${w.data.id}: API answered in ${w.total}ms (DB + outbox ${w.details?.db_write_and_outbox ?? "?"}ms)`, "ok");
+  await showRace(w.data.id);
+  await showPropagation(w.data.id, w.server);
+}
 
-  const immediate = await rest(`query/composed/${id}`);
-  $("#evt-read").textContent = immediate.ok ? "found ✓" : "not found yet";
-  $("#evt-read").style.color = immediate.ok ? "var(--evt)" : "var(--wait)";
-  evtLog.log(`read straight after the write: ${immediate.status === 200 ? "found" : "404, not in the projection yet"}`,
-    immediate.ok ? "ok" : "wait");
+// The read that races the event: usually too early.
+async function showRace(id) {
+  const { ok } = await composedView(id);
+  verdict($("#evt-read"), ok ? "found ✓" : "not found yet", ok ? "evt" : "wait");
+  evtLog.log(`read straight after the write: ${ok ? "found" : "404, not in the projection yet"}`, ok ? "ok" : "wait");
+}
 
-  const [, waited] = await until(async () => (await rest(`query/composed/${id}`)).ok);
-  const t = await rest(`consumer/metrics/timing/${id}`);
-  if (!t.ok) {
-    evtLog.log(`no propagation after ${waited}ms`, "err");
-    return;
-  }
-  pipeline($("#pipeline"), fromTiming(w.server, t.data));
-  $("#evt-read").textContent = `found after ${t.data.totalPropagationMs}ms`;
-  $("#evt-read").style.color = "var(--evt)";
-  evtLog.log(`in the projection ${t.data.totalPropagationMs}ms after the write (relay ${t.data.outboxToQueueMs}ms, queue ${t.data.queueToConsumerMs}ms, consumer ${t.data.consumerToProjectionMs}ms)`, "ok");
+// Wait for the consumer's timing row; it is committed together with the projection row.
+async function showPropagation(id, writeMs) {
+  const [t, waited] = await until(async () => {
+    const r = await rest(`consumer/metrics/timing/${id}`);
+    return r.ok && r.data;
+  }, 250);
+  if (!t) return evtLog.log(`no propagation after ${waited}ms`, "err");
+  pipeline($("#pipeline"), fromTiming(writeMs, t));
+  verdict($("#evt-read"), `found after ${t.totalPropagationMs}ms`, "evt");
+  evtLog.log(`in the projection ${t.totalPropagationMs}ms after the write (relay ${t.outboxToQueueMs}ms, queue ${t.queueToConsumerMs}ms, consumer ${t.consumerToProjectionMs}ms)`, "ok");
 }
 
 $("#run").addEventListener("click", busy($("#run"), async () => {
   const name = $("#name").value.trim();
   const email = $("#email").value.trim();
   if (!name || !email) return;
-  $("#status").textContent = "Writing…";
-  $("#status").className = "status wait";
+  say($("#status"), "Writing…", "wait");
   await Promise.all([federationSide(name, email), eventSide(name, email)]);
-  $("#status").textContent = "Done. Try again with another name.";
-  $("#status").className = "status ok";
+  say($("#status"), "Done. Try again with another name.", "ok");
 }));

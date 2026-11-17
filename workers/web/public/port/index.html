@@ -11,7 +11,7 @@
 <main>
   <h1>How this runs on Cloudflare</h1>
   <p class="lead">The original demo runs on Kubernetes with Tilt: Quarkus services, the Apollo Router, Kafka and Postgres.
-    This Lunch &amp; Learn runs the same domain, schemas, seed data and APIs as ten Cloudflare Workers.</p>
+    This Lunch &amp; Learn runs the same domain, schemas, seed data and APIs as eleven Cloudflare Workers.</p>
 
   <div class="panel">
     <table class="kv">
@@ -21,7 +21,7 @@
       <tr><th>Cluster DNS between router and subgraphs</th><td>Service bindings: Worker-to-Worker calls with no public network hop</td></tr>
       <tr><th>Postgres databases (hr_db, employment_db, security_db, *_events_db, projections_db)</th><td>Seven D1 databases, one per original database</td></tr>
       <tr><th>Event services with a transactional outbox (Quarkus, Panache)</th><td>Three Workers; entity row and outbox row commit in one D1 batch</td></tr>
-      <tr><th>Outbox relay, <code>@Scheduled(every = "1s")</code></th><td>An OutboxRelay Durable Object per service: woken by each write, then polls every second while rows wait</td></tr>
+      <tr><th>Outbox relay, <code>@Scheduled(every = "1s")</code></th><td>An OutboxRelay Durable Object per service and visitor: woken by each write, then retries every second while rows still wait</td></tr>
       <tr><th>Kafka topics events.hr.person, events.employment.employee, events.security.badge</th><td>Three Cloudflare Queues</td></tr>
       <tr><th>Projection consumer (SmallRye Reactive Messaging)</th><td>A queue consumer Worker; same snapshot upsert and processed-events idempotency. Propagation timing is stored in D1 for all three topics instead of in memory for persons only</td></tr>
       <tr><th>Query service</th><td>A Worker over the projections D1 with the same composed view and freshness format</td></tr>

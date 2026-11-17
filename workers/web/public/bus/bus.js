@@ -1,39 +1,26 @@
-import { rest, lesson, emailFor } from "../lib/api.js";
-import { $, el, crumbs, logger, kv, busy } from "../lib/ui.js";
+import { rest, lesson, composedView, emailFor } from "../lib/api.js";
+import { $, crumbs, logger, kv, busy, say, press, pressed } from "../lib/ui.js";
+import { fillPeople, randomName } from "../lib/people.js";
 
 crumbs();
 const log = logger($("#log"));
-const SWITCHES = ["brokerDown", "consumerPaused"];
-const LABEL = { brokerDown: "Broker down", consumerPaused: "Consumer paused" };
-const NAMES = ["Ada Lovelace", "Katherine Johnson", "Margaret Hamilton", "Radia Perlman", "Barbara Liskov", "Frances Allen"];
+const SWITCHES = { brokerDown: "Broker down", consumerPaused: "Consumer paused" };
+const fillMine = (selected) => fillPeople($("#mine"), { path: "hr-events/persons", mine: true, selected });
+let employeeId = null;  // the selected person's employee record, learned by each look
 
-function showSwitches(s) {
-  for (const k of SWITCHES) {
-    const b = $(`#sw-${k}`);
-    b.setAttribute("aria-pressed", String(Boolean(s[k])));
-    b.textContent = `${LABEL[k]}${s[k] ? " ✕" : ""}`;
-  }
-}
-
-for (const k of SWITCHES) {
-  $(`#sw-${k}`).addEventListener("click", async () => {
-    const on = $(`#sw-${k}`).getAttribute("aria-pressed") !== "true";
-    const r = await lesson.set({ [k]: on });
+const showSwitches = (on) => Object.keys(SWITCHES).forEach((key) => press($(`#sw-${key}`), on[key]));
+for (const [key, label] of Object.entries(SWITCHES)) {
+  $(`#sw-${key}`).addEventListener("click", async () => {
+    const on = !pressed($(`#sw-${key}`));
+    const r = await lesson.set({ [key]: on });
     if (r.ok) showSwitches(r.data);
-    log.log(`${LABEL[k]}: ${on ? "on" : "off"}`, on ? "wait" : "ok");
+    log.log(`${label}: ${on ? "on" : "off"}`, on ? "wait" : "ok");
+    wake();
   });
 }
 
-async function fillMine(selected) {
-  const r = await rest("hr-events/persons");
-  const mine = (r.ok ? r.data : []).filter((p) => !/^person-00\d$/.test(p.id));
-  $("#mine").replaceChildren(...(mine.length
-    ? mine.map((p) => el("option", { value: p.id, selected: p.id === selected }, `${p.name} (${p.id})`))
-    : [el("option", { value: "" }, "none yet")]));
-}
-
 $("#create").addEventListener("click", busy($("#create"), async () => {
-  const name = `${NAMES[Math.floor(Math.random() * NAMES.length)]} ${Math.floor(Math.random() * 90 + 10)}`;
+  const name = randomName();
   const p = await rest("hr-events/persons", { method: "POST", body: { name, email: emailFor(name) } });
   if (!p.ok) return log.log(`create failed: ${JSON.stringify(p.data)}`, "err");
   const e = await rest("employment-events/employees", {
@@ -42,49 +29,80 @@ $("#create").addEventListener("click", busy($("#create"), async () => {
   $("#create-status").textContent = `${p.data.name} created${e.ok ? " with a job" : ""}.`;
   log.log(`created ${p.data.id} (${p.data.name})${e.ok ? `, employee ${e.data.id}` : ""}`, "ok");
   await fillMine(p.data.id);
+  wake();
 }));
 
 $("#write").addEventListener("click", busy($("#write"), async () => {
   const id = $("#mine").value;
   if (!id) return log.log("Create a person first.", "err");
-  const name = `${NAMES[Math.floor(Math.random() * NAMES.length)]} ${Math.floor(Math.random() * 90 + 10)}`;
-  const p = await rest(`hr-events/persons/${id}?name=${encodeURIComponent(name)}`, { method: "PUT" });
-  const emp = await rest(`employment-events/employees/by-person/${id}`);
-  const t = emp.ok
-    ? await rest(`employment-events/employees/${emp.data.id}/promote?title=${encodeURIComponent($("#title").value)}`, { method: "PUT" })
-    : null;
-  log.log(`wrote: name "${name}" (${p.status}, ${p.total}ms)${t ? `, title "${$("#title").value}" (${t.status}, ${t.total}ms)` : ""}`,
+  const name = randomName();
+  const title = $("#title").value;
+  const [p, t] = await Promise.all([
+    rest(`hr-events/persons/${id}?name=${encodeURIComponent(name)}`, { method: "PUT" }),
+    employeeId && rest(`employment-events/employees/${employeeId}/promote?title=${encodeURIComponent(title)}`, { method: "PUT" }),
+  ]);
+  log.log(`wrote: name "${name}" (${p.status}, ${p.total}ms)${t ? `, title "${title}" (${t.status}, ${t.total}ms)` : ""}`,
     p.ok ? "ok" : "err");
+  wake();
 }));
 
-// Every second: owners vs projection, and how much is waiting where.
-async function watch() {
-  const id = $("#mine").value;
-  const s = await lesson.get();
-  if (s.ok) showSwitches(s.data);
-  const [hrOut, empOut] = await Promise.all([rest("hr-events/outbox"), rest("employment-events/outbox")]);
-  const waiting = (hrOut.data?.waiting ?? 0) + (empOut.data?.waiting ?? 0);
-  if (!id) {
-    $("#backlog").textContent = `Outbox: ${waiting} event(s) waiting.`;
-    return;
-  }
-  const [src, emp, proj] = await Promise.all([
-    rest(`hr-events/persons/${id}`), rest(`employment-events/employees/by-person/${id}`), rest(`query/composed/${id}`),
-  ]);
-  const source = { name: src.data?.name, title: emp.ok ? emp.data.title : null };
-  const view = proj.ok ? { name: proj.data.name, title: proj.data.title } : { name: null, title: null };
+// A field of an API answer's body, or null when the answer has none (a 404, say).
+const field = (answer, key) => answer.data?.[key] ?? null;
+
+// Show the owners' data against the projection's; true when they agree.
+function compare(source, seen, freshness) {
   kv($("#source"), [["name", source.name], ["title", source.title]]);
-  kv($("#projection"), [["name", view.name], ["title", view.title],
-    ["data freshness", proj.ok ? proj.data.freshness.dataFreshness : null]]);
-  const inSync = source.name === view.name && source.title === view.title;
-  $("#sync").textContent = inSync ? "in sync ✓" : "behind…";
-  $("#sync").className = `status ${inSync ? "ok" : "wait"}`;
-  $("#backlog").textContent = `Outbox: ${waiting} event(s) waiting to be published.` +
-    (s.data?.consumerPaused ? " Consumer paused: published events are waiting on the queue." : "");
+  kv($("#projection"), [["name", seen.name], ["title", seen.title], ["data freshness", freshness]]);
+  const inSync = source.name === seen.name && source.title === seen.title;
+  say($("#sync"), inSync ? "in sync ✓" : "behind…", inSync ? "ok" : "wait");
+  return inSync;
 }
 
-async function loop() {
-  try { await watch(); } catch (e) { log.log(String(e), "err"); }
-  setTimeout(loop, 1000);
+// The selected person at their owners and in the projection; true when the two agree.
+async function personInSync(id) {
+  const [person, employee, view] = await Promise.all([
+    rest(`hr-events/persons/${id}`), rest(`employment-events/employees/by-person/${id}`), composedView(id),
+  ]);
+  employeeId = field(employee, "id");
+  return compare(
+    { name: field(person, "name"), title: field(employee, "title") },
+    { name: field(view, "name"), title: field(view, "title") },
+    field(view, "freshness")?.dataFreshness,
+  );
 }
-fillMine().then(loop);
+
+// The switches and the outboxes; true when no switch is on and nothing waits to be published.
+async function busQuiet() {
+  const [switches, hr, employment] = await Promise.all([
+    lesson.get(), rest("hr-events/outbox"), rest("employment-events/outbox"),
+  ]);
+  const on = switches.ok ? switches.data : {};
+  showSwitches(on);
+  const waiting = field(hr, "waiting") + field(employment, "waiting");
+  $("#backlog").textContent = `Outbox: ${waiting} event(s) waiting to be published.${
+    on.consumerPaused ? " Consumer paused: published events are waiting on the queue." : ""}`;
+  return waiting === 0 && !on.brokerDown && !on.consumerPaused;
+}
+
+// One look at both sides, all requests at once. True once nothing is left to wait for.
+async function look() {
+  const id = $("#mine").value;
+  const [quiet, inSync] = await Promise.all([busQuiet(), id ? personInSync(id) : true]);
+  return quiet && inSync;
+}
+
+// Look once a second while anything is on its way; rest once settled or while the tab is hidden.
+let timer = null;
+let woken = false;
+function wake() {
+  woken = true;
+  timer ??= setTimeout(tick, 0);
+}
+async function tick() {
+  woken = false;
+  const settled = document.hidden || await look().catch((e) => { log.log(String(e), "err"); return false; });
+  timer = settled && !woken ? null : setTimeout(tick, woken ? 0 : 1000);
+}
+$("#mine").addEventListener("change", wake);
+document.addEventListener("visibilitychange", wake);
+fillMine().then(wake);

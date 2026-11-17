@@ -3,23 +3,17 @@
   --bg: #f7f7f8; --surface: #fff; --surface-2: #f0f0f3; --code-bg: #e6e6ec; --border: #dcdce2; --grid: #ececf0;
   --text: #18181b; --muted: #52525b; --faint: #8a8a94;
   --fed: #2563eb; --fed-bg: #2563eb1a; --evt: #16a34a; --evt-bg: #16a34a1a;
-  --fail: #dc2626; --fail-bg: #ef44441f; --wait: #ca8a04; --wait-bg: #facc1533; --idle: #94a3b8;
+  --fail: #dc2626; --fail-bg: #ef44441f; --wait: #ca8a04; --wait-bg: #facc1533;
   --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
+  :root {
     --bg: #0a0a0b; --surface: #161618; --surface-2: #1f1f23; --code-bg: #050506; --border: #2c2c31; --grid: #1f1f24;
     --text: #ececf0; --muted: #a1a1aa; --faint: #6b6b74;
     --fed: #60a5fa; --fed-bg: #3b82f62a; --evt: #4ade80; --evt-bg: #22c55e24;
-    --fail: #ef4444; --wait: #facc15; --idle: #475569;
+    --fail: #ef4444; --wait: #facc15;
   }
-}
-:root[data-theme="dark"] {
-  --bg: #0a0a0b; --surface: #161618; --surface-2: #1f1f23; --code-bg: #050506; --border: #2c2c31; --grid: #1f1f24;
-  --text: #ececf0; --muted: #a1a1aa; --faint: #6b6b74;
-  --fed: #60a5fa; --fed-bg: #3b82f62a; --evt: #4ade80; --evt-bg: #22c55e24;
-  --fail: #ef4444; --wait: #facc15; --idle: #475569;
 }
 * { box-sizing: border-box; }
 html { font-size: 112.5%; }
@@ -81,7 +75,7 @@ button:disabled { opacity: .5; cursor: default; }
 .lane .seg { position: absolute; top: 0; bottom: 0; border-radius: 4px; min-width: 2px; transition: left .25s, width .25s; }
 .lane .ms { font: 600 .8rem var(--mono); text-align: right; }
 .seg.fed { background: var(--fed); } .seg.evt { background: var(--evt); }
-.seg.fail { background: var(--fail); } .seg.wait { background: repeating-linear-gradient(45deg, var(--wait), var(--wait) 4px, transparent 4px, transparent 8px); }
+.seg.fail { background: var(--fail); }
 .axis { display: grid; grid-template-columns: 150px 1fr 64px; gap: 8px; font: .72rem var(--mono); color: var(--faint); }
 .axis .ticks { display: flex; justify-content: space-between; }
 .legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: .78rem; color: var(--muted); margin-top: 6px; }

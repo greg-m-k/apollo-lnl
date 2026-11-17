@@ -1,7 +1,7 @@
 // The event write path as stages; each stage shows its measured ms once known.
 import { el } from "./ui.js";
 
-export const STAGES = [
+const STAGES = [
   ["write", "DB + outbox"],
   ["relay", "Outbox relay"],
   ["queue", "Queue"],
@@ -9,12 +9,16 @@ export const STAGES = [
   ["projection", "Projection"],
 ];
 
+const caption = (stage) => {
+  if (stage?.ms != null) return `${stage.ms}ms`;
+  return stage?.status === "wait" ? "waiting" : "·";
+};
+
 // state: { stage: { status: "done"|"wait"|"fail", ms? } }
 export function pipeline(container, state) {
   container.replaceChildren(...STAGES.flatMap(([key, label], i) => [
     i ? el("span", { class: "arrow" }, "→") : null,
-    el("div", { class: `stage ${state[key]?.status ?? ""}` }, label,
-      el("b", {}, state[key]?.ms != null ? `${state[key].ms}ms` : state[key]?.status === "wait" ? "waiting" : "·")),
+    el("div", { class: `stage ${state[key]?.status ?? ""}` }, label, el("b", {}, caption(state[key]))),
   ].filter(Boolean)));
 }
 

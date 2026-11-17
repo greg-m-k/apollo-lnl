@@ -1,6 +1,7 @@
 // The Lunch & Learn site: static lesson pages plus one same-origin /api that forwards
 // to the demo's Workers over service bindings, and sets the per-session Lesson switches
 // (broker down, consumer paused) that the event side reads.
+import { lessonStub } from "../../../shared/lesson.js";
 import { sessionFrom } from "../../../shared/chaos.js";
 
 // /api/<prefix>/rest -> [binding, path prefix on that Worker]
@@ -16,9 +17,8 @@ const UPSTREAM = {
 async function lesson(request, env) {
   const session = sessionFrom(request);
   if (!session) return Response.json({ error: "x-lnl-session header is required" }, { status: 400 });
-  const stub = env.LESSON.get(env.LESSON.idFromName(session));
-  if (request.method === "PUT") return Response.json(await stub.set(await request.json()));
-  return Response.json(await stub.switches());
+  const stub = lessonStub(env, session);
+  return Response.json(request.method === "PUT" ? await stub.set(await request.json()) : await stub.switches());
 }
 
 export default {

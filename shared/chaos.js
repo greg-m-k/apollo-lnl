@@ -3,7 +3,6 @@
 //   x-lnl-chaos:   {"down": ["security"], "delay": {"hr": 300}}
 export const SESSION_HEADER = "x-lnl-session";
 export const CHAOS_HEADER = "x-lnl-chaos";
-const SERVICES = new Set(["hr", "employment", "security"]);
 const MAX_DELAY_MS = 5000;
 
 export function sessionFrom(request) {
@@ -12,21 +11,20 @@ export function sessionFrom(request) {
 }
 
 // Parsed once where it enters; anything malformed means "no chaos".
-export function chaosFrom(request) {
-  const none = { down: [], delay: {} };
-  let raw;
+function parse(text) {
   try {
-    raw = JSON.parse(request.headers.get(CHAOS_HEADER) || "{}");
+    const value = JSON.parse(text || "{}");
+    return value && typeof value === "object" ? value : {};
   } catch {
-    return none;
+    return {};
   }
-  if (!raw || typeof raw !== "object") return none;
-  const down = Array.isArray(raw.down) ? raw.down.filter((s) => SERVICES.has(s)) : [];
-  const delay = {};
-  for (const [service, ms] of Object.entries(raw.delay ?? {})) {
-    if (SERVICES.has(service) && Number.isFinite(ms) && ms > 0) delay[service] = Math.min(ms, MAX_DELAY_MS);
-  }
-  return { down, delay };
+}
+
+// What the request asks of the service called `name`: be down, or answer late.
+export function chaosFor(request, name) {
+  const { down, delay } = parse(request.headers.get(CHAOS_HEADER));
+  const ms = Number(delay?.[name]);
+  return { down: Array.isArray(down) && down.includes(name), delayMs: ms > 0 ? Math.min(ms, MAX_DELAY_MS) : 0 };
 }
 
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));

@@ -13,7 +13,7 @@ before(async () => {
   browser = await chromium.launch({ channel: "msedge" });
   page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   page.on("pageerror", (e) => errors.push(String(e)));
-  page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
+  page.on("console", (m) => m.type() === "error" && errors.push(`${m.text()} at ${m.location().url}`));
 });
 after(async () => browser?.close());
 const shot = (name) => SHOTS && page.screenshot({ path: `${SHOTS}/${name}.png`, fullPage: true });
@@ -70,6 +70,15 @@ test("bus: with the broker down a rename waits, then catches up", async () => {
   await page.click("#sw-brokerDown");
   await page.waitForFunction(() => /in sync/.test(document.querySelector("#sync").textContent), null, { timeout: 20000 });
   await shot("bus-caught-up");
+
+  // Once everything has caught up the page rests: no more API requests until something changes.
+  await page.waitForTimeout(1500);
+  let asked = 0;
+  const count = (request) => { if (request.url().includes("/api/")) asked += 1; };
+  page.on("request", count);
+  await page.waitForTimeout(2500);
+  page.off("request", count);
+  assert.equal(asked, 0);
 });
 
 test("tradeoffs: measures both paths", async () => {
@@ -84,6 +93,6 @@ test("port page renders and nothing logged an error", async () => {
   await page.goto(`${BASE}/port/`);
   assert.match(await page.textContent("h1"), /Cloudflare/);
   await shot("port");
-  // 404s are expected: reads that race an event, and polling until it lands.
-  assert.deepEqual(errors.filter((e) => !/status of 404/.test(e)), []);
+  // A 404 from the API is an answer, not an error: a read that races an event, or a poll until it lands.
+  assert.deepEqual(errors.filter((e) => !/status of 404.* at .*\/api\//.test(e)), []);
 });

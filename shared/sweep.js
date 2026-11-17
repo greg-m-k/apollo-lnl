@@ -1,7 +1,7 @@
 // Visitors' rows are cleared 20 minutes after they were written; seed rows stay.
-export const KEEP_MS = 20 * 60 * 1000;
+const KEEP_MS = 20 * 60 * 1000;
 
-// tables: { table: timeColumn } (time columns hold epoch ms)
+// tables: { table: timeColumn } (time columns hold epoch ms). Returns a scheduled handler.
 export function sweeper(tables) {
   return async (_controller, env) => {
     const cutoff = Date.now() - KEEP_MS;

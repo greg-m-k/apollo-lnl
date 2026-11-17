@@ -1,56 +1,28 @@
 // HR subgraph: owns Person, the canonical source of identity (apollo-demo hr-subgraph).
 import typeDefs from "../../../shared/schema/hr.graphql";
-import { sweeper } from "../../../shared/sweep.js";
-import { subgraph } from "../../../shared/subgraph.js";
-import { VISIBLE, bool, newId, ownRow, requireSession } from "../../../shared/rows.js";
+import { subgraph, reader, create, change } from "../../../shared/subgraph.js";
+import { person } from "../../../shared/entities.js";
+import { given, newId } from "../../../shared/rows.js";
 
-const person = (r) => r && { id: r.id, name: r.name, email: r.email, hireDate: r.hire_date, active: bool(r.active) };
-const list = async (db, sql, ...args) => (await db.prepare(sql).bind(...args).all()).results.map(person);
-const one = async (db, sql, ...args) => person(await db.prepare(sql).bind(...args).first());
+const { list, one } = reader(person);
 
-export const resolvers = {
+const resolvers = {
   Query: {
-    persons: (_, __, { db, session, timing }) =>
-      timing.step("db_query", () => list(db, `SELECT * FROM persons WHERE ${VISIBLE} ORDER BY id`, session)),
-    person: (_, { id }, { db, session, timing }) =>
-      timing.step("db_query", () => one(db, `SELECT * FROM persons WHERE id = ? AND ${VISIBLE}`, id, session)),
-    personByEmail: (_, { email }, { db, session, timing }) =>
-      timing.step("db_query", () => one(db, `SELECT * FROM persons WHERE email = ? AND ${VISIBLE}`, email, session)),
-    activePersons: (_, __, { db, session, timing }) =>
-      timing.step("db_query", () => list(db, `SELECT * FROM persons WHERE active = 1 AND ${VISIBLE} ORDER BY id`, session)),
-    searchPersons: (_, { name }, { db, session, timing }) =>
-      timing.step("db_query", () =>
-        list(db, `SELECT * FROM persons WHERE name LIKE ? AND ${VISIBLE} ORDER BY id`, `%${name}%`, session)),
+    persons: (_, __, ctx) => list(ctx),
+    person: (_, { id }, ctx) => one(ctx, "id = ?", id),
+    personByEmail: (_, { email }, ctx) => one(ctx, "email = ?", email),
+    activePersons: (_, __, ctx) => list(ctx, "active = 1"),
+    searchPersons: (_, { name }, ctx) => list(ctx, "name LIKE ?", `%${name}%`),
   },
   Mutation: {
-    createPerson: async (_, { name, email, hireDate }, { db, session, timing }) => {
-      const p = { id: newId("person"), name, email, hireDate: hireDate ?? null, active: true };
-      await timing.step("db_write", () =>
-        db.prepare("INSERT INTO persons (id, session, name, email, hire_date, active) VALUES (?, ?, ?, ?, ?, 1)")
-          .bind(p.id, requireSession(session), name, email, p.hireDate).run());
-      return p;
-    },
-    updatePerson: async (_, { id, name, email }, { db, session, timing }) => {
-      const row = await timing.step("db_read", () => ownRow(db, "persons", id, session));
-      if (!row) return null;
-      const next = { ...person(row), name: name ?? row.name, email: email ?? row.email };
-      await timing.step("db_write", () =>
-        db.prepare("UPDATE persons SET name = ?, email = ? WHERE id = ?").bind(next.name, next.email, id).run());
-      return next;
-    },
-    terminatePerson: async (_, { id }, { db, session, timing }) => {
-      const row = await timing.step("db_read", () => ownRow(db, "persons", id, session));
-      if (!row) return null;
-      await timing.step("db_write", () => db.prepare("UPDATE persons SET active = 0 WHERE id = ?").bind(id).run());
-      return { ...person(row), active: false };
-    },
+    createPerson: (_, { name, email, hireDate }, ctx) =>
+      create(ctx, person, { id: newId("person"), name, email, hireDate: hireDate ?? null, active: true }),
+    updatePerson: (_, { id, name, email }, ctx) => change(ctx, person, id, given({ name, email })),
+    terminatePerson: (_, { id }, ctx) => change(ctx, person, id, { active: false }),
   },
   Person: {
-    __resolveReference: ({ id }, { db, session, timing }) =>
-      timing.step("db_resolve", () => one(db, `SELECT * FROM persons WHERE id = ? AND ${VISIBLE}`, id, session)),
+    __resolveReference: ({ id }, ctx) => one(ctx, "id = ?", id),
   },
 };
 
-const scheduled = sweeper({ persons: "created_at" });
-
-export default { ...subgraph({ name: "hr", typeDefs, resolvers }), scheduled };
+export default subgraph({ name: "hr", entity: person, typeDefs, resolvers });

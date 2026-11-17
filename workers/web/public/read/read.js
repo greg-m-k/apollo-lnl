@@ -1,16 +1,16 @@
-import { federation, rest, PERSON_QUERY } from "../lib/api.js";
-import { $, crumbs, logger, timeline, kv, busy, fedRows, evtRows } from "../lib/ui.js";
+import { federation, composedView, PERSON_QUERY, SUBGRAPHS } from "../lib/api.js";
+import { $, crumbs, logger, timeline, fedLanes, kv, busy, say, fedRows, evtRows } from "../lib/ui.js";
 import { fillPeople } from "../lib/people.js";
 
 crumbs();
-const SUBGRAPHS = ["hr", "employment", "security"];
 const fedLog = logger($("#fed-log"));
 const evtLog = logger($("#evt-log"));
 
 for (const s of SUBGRAPHS) {
   $(`#d-${s}`).addEventListener("input", (e) => { $(`#o-${s}`).value = `${e.target.value}ms`; });
 }
-const delays = () => Object.fromEntries(SUBGRAPHS.map((s) => [s, Number($(`#d-${s}`).value)]).filter(([, v]) => v > 0));
+// { subgraph: extra ms } from the sliders
+const delays = () => Object.fromEntries(SUBGRAPHS.map((s) => [s, Number($(`#d-${s}`).value)]));
 
 function showCode() {
   const id = $("#person").value;
@@ -20,13 +20,8 @@ function showCode() {
 
 async function askFederation(id) {
   const delay = delays();
-  const r = await federation(PERSON_QUERY(id), Object.keys(delay).length ? { delay } : undefined);
-  const lanes = [{ name: "Router (whole query)", start: 0, end: r.router ?? r.total, kind: "fed" },
-    ...r.fetches.map((f) => ({
-      name: `→ ${f.subgraph}${delay[f.subgraph] ? ` (+${delay[f.subgraph]}ms)` : ""}`,
-      start: f.start, end: f.end, kind: f.status === 200 ? "fed" : "fail",
-    }))];
-  timeline($("#fed-timeline"), lanes);
+  const r = await federation(PERSON_QUERY(id), { delay });
+  timeline($("#fed-timeline"), fedLanes(r, "Router (whole query)", (s) => (delay[s] ? ` (+${delay[s]}ms)` : "")));
   kv($("#fed-result"), fedRows(r.body.data?.person));
   const parts = SUBGRAPHS.map((s) => `${s} ${r.subgraphs[s].ms ?? "-"}ms`).join(", ");
   fedLog.log(`${r.total}ms in the browser, router ${r.router}ms [${parts}]`, r.body.errors ? "err" : "ok");
@@ -35,11 +30,12 @@ async function askFederation(id) {
 }
 
 async function askProjection(id) {
-  const r = await rest(`query/composed/${id}`);
+  const r = await composedView(id);
   const db = r.details?.db ?? 0;
+  const service = r.server ?? r.total;
   timeline($("#evt-timeline"), [
-    { name: "Query service", start: 0, end: r.server ?? r.total, kind: "evt" },
-    { name: "→ local projection DB", start: Math.max(0, (r.server ?? 0) - db), end: r.server ?? db, kind: "evt" },
+    { name: "Query service", start: 0, end: service, kind: "evt" },
+    { name: "→ local projection DB", start: Math.max(0, service - db), end: service, kind: "evt" },
   ]);
   kv($("#evt-result"), evtRows(r.ok ? r.data : null));
   evtLog.log(r.ok
@@ -51,11 +47,9 @@ async function askProjection(id) {
 $("#run").addEventListener("click", busy($("#run"), async () => {
   const id = $("#person").value;
   showCode();
-  $("#status").textContent = "Asking both…";
-  $("#status").className = "status wait";
+  say($("#status"), "Asking both…", "wait");
   const [fed, evt] = await Promise.all([askFederation(id), askProjection(id)]);
-  $("#status").textContent = `Federation ${fed}ms · Projection ${evt}ms`;
-  $("#status").className = "status ok";
+  say($("#status"), `Federation ${fed}ms · Projection ${evt}ms`, "ok");
 }));
 $("#person").addEventListener("change", showCode);
 showCode();

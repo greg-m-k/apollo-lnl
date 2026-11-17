@@ -1,5 +1,7 @@
 {
   // Projection consumer: the three topics in, local read models out.
+  // max_retries: a paused session's events are retried every 2 s (PAUSED_RETRY_S in src/index.js); 100 retries
+  // outlast the 3 minutes a lesson switch can stay on (workers/lesson).
   "name": "lnl-projection-consumer",
   "main": "src/index.js",
   "workers_dev": false,  // internal: reached only through service bindings and queues

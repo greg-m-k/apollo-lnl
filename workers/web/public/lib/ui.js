@@ -1,5 +1,5 @@
 // Small DOM helpers shared by the lesson pages.
-export const LESSONS = [
+const LESSONS = [
   ["/read/", "One question, three services"],
   ["/failure/", "When a service goes down"],
   ["/write/", "Write, then read"],
@@ -7,6 +7,9 @@ export const LESSONS = [
   ["/tradeoffs/", "So which one?"],
   ["/port/", "How this runs on Cloudflare"],
 ];
+const MIN_SCALE_MS = 200;
+
+export const $ = (sel) => document.querySelector(sel);
 
 export function el(tag, attrs = {}, ...children) {
   const node = document.createElement(tag);
@@ -25,8 +28,7 @@ export function crumbs() {
   const nav = el("nav", { class: "crumbs", "aria-label": "Lessons" }, el("a", { href: "/" }, "Home"),
     ...LESSONS.map(([href, title]) => el("a", { href, "aria-current": href === here ? "page" : null }, title)));
   document.querySelector("main").prepend(nav);
-  const i = LESSONS.findIndex(([href]) => href === here);
-  const next = LESSONS[i + 1];
+  const next = LESSONS[LESSONS.findIndex(([href]) => href === here) + 1];
   if (next) document.querySelector("main").append(el("p", { class: "next" }, "Next: ", el("a", { href: next[0] }, `${next[1]} →`)));
   document.querySelector("main").append(el("footer", {},
     "People you create are yours alone and are cleared 20 minutes after you make them. Lesson switches you turn on switch themselves off after 3 minutes."));
@@ -39,18 +41,30 @@ export function logger(pre) {
   return {
     log(text, kind) {
       if (empty) { pre.textContent = ""; empty = false; }
-      const line = el("div", { class: kind ?? null }, `${new Date().toLocaleTimeString()}  ${text}`);
-      pre.append(line);
+      pre.append(el("div", { class: kind }, `${new Date().toLocaleTimeString()}  ${text}`));
       pre.scrollTop = pre.scrollHeight;
     },
     clear() { pre.textContent = "Nothing logged yet"; empty = true; },
   };
 }
 
-// lanes: [{ name, start, end, kind: "fed"|"evt"|"fail"|"wait", label? }]; scale fits the slowest.
-export function timeline(container, lanes, minScale = 200) {
-  const max = Math.max(minScale, ...lanes.map((l) => l.end));
-  const scale = Math.ceil(max / 100) * 100;
+// A status line: kind "ok" | "err" | "wait", or none.
+export function say(node, text, kind = "") {
+  node.textContent = text;
+  node.className = `status ${kind}`.trim();
+}
+
+// On/off pill buttons: pressed(button) reads one; press(button, on) sets it and marks it with ✕.
+export const pressed = (button) => button.getAttribute("aria-pressed") === "true";
+export function press(button, on) {
+  button.dataset.label ??= button.textContent;
+  button.setAttribute("aria-pressed", String(on));
+  button.textContent = `${button.dataset.label}${on ? " ✕" : ""}`;
+}
+
+// lanes: [{ name, start, end, kind: "fed"|"evt"|"fail", label? }]; the scale fits the slowest.
+export function timeline(container, lanes) {
+  const scale = Math.ceil(Math.max(MIN_SCALE_MS, ...lanes.map((l) => l.end)) / 100) * 100;
   container.replaceChildren(
     ...lanes.map((l) => el("div", { class: "lane" },
       el("div", { class: "name", title: l.name }, l.name),
@@ -64,13 +78,26 @@ export function timeline(container, lanes, minScale = 200) {
   );
 }
 
+// Timeline lanes for one federated call: the router's whole span, then each subgraph call.
+// note(subgraph): text to add after a subgraph's name.
+export function fedLanes(r, routerName = "Router", note = () => "") {
+  const failed = (f) => f.status !== 200;
+  return [
+    { name: routerName, start: 0, end: r.router ?? r.total, kind: r.body.errors ? "fail" : "fed" },
+    ...r.fetches.map((f) => ({
+      name: `→ ${f.subgraph}${note(f.subgraph)}`, start: f.start, end: f.end,
+      kind: failed(f) ? "fail" : "fed", label: failed(f) ? String(f.status) : undefined,
+    })),
+  ];
+}
+
+// rows: [[label, value]]; a missing value is shown as a red "null".
 export function kv(table, rows) {
   table.replaceChildren(...rows.map(([k, v]) =>
     el("tr", {}, el("th", {}, k), el("td", { class: v == null ? "null" : null }, v == null ? "null" : String(v)))));
 }
 
-export const $ = (sel) => document.querySelector(sel);
-
+// A click handler that disables its button while it runs.
 export function busy(button, fn) {
   return async (...args) => {
     button.disabled = true;
@@ -81,14 +108,14 @@ export function busy(button, fn) {
 // The federated person as rows for a kv table.
 export function fedRows(p) {
   if (!p) return [["person", null]];
-  return [["name", p.name], ["email", p.email], ["employee.title", p.employee?.title ?? null],
-    ["employee.department", p.employee?.department ?? null], ["badge.badgeNumber", p.badge?.badgeNumber ?? null],
-    ["badge.accessLevel", p.badge?.accessLevel ?? null]];
+  return [["name", p.name], ["email", p.email], ["employee.title", p.employee?.title],
+    ["employee.department", p.employee?.department], ["badge.badgeNumber", p.badge?.badgeNumber],
+    ["badge.accessLevel", p.badge?.accessLevel]];
 }
 
 // The composed projection view as rows for a kv table.
 export function evtRows(v) {
-  if (!v || !v.personId) return [["person", null]];
+  if (!v?.personId) return [["person", null]];
   return [["name", v.name], ["email", v.email], ["title", v.title], ["department", v.department],
     ["badgeNumber", v.badgeNumber], ["accessLevel", v.accessLevel], ["data freshness", v.freshness?.dataFreshness]];
 }
