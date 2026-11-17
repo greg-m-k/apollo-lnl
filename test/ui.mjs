@@ -21,6 +21,8 @@ const shot = (name) => SHOTS && page.screenshot({ path: `${SHOTS}/${name}.png`, 
 test("home lists the start page and the six lessons", async () => {
   await page.goto(BASE);
   assert.equal(await page.locator(".card").count(), 7);
+  assert.match(await page.textContent(".lead"), /Nothing here is mocked/);
+  assert.ok(await page.locator('a[href="https://github.com/greg-m-k/apollo-lnl"]').count() >= 2);
   await shot("home");
 });
 
