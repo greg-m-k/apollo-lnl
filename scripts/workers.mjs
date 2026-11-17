@@ -4,15 +4,15 @@ import { existsSync } from "node:fs";
 
 export const WORKERS = [
   "site/lesson",
-  "option-a-federation/hr-subgraph",
-  "option-a-federation/employment-subgraph",
-  "option-a-federation/security-subgraph",
-  "option-a-federation/router",
-  "option-b-events/hr-events",
-  "option-b-events/employment-events",
-  "option-b-events/security-events",
-  "option-b-events/projection-consumer",
-  "option-b-events/query-service",
+  "patterns/federation/hr-subgraph",
+  "patterns/federation/employment-subgraph",
+  "patterns/federation/security-subgraph",
+  "patterns/federation/router",
+  "patterns/event-projections/hr-events",
+  "patterns/event-projections/employment-events",
+  "patterns/event-projections/security-events",
+  "patterns/event-projections/projection-consumer",
+  "patterns/event-projections/query-service",
   "site/web",
 ];
 

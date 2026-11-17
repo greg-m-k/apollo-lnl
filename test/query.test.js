@@ -1,6 +1,6 @@
-// Option B's query service: the composed view it builds from three projection rows.
+// The event-projections pattern's query service: the composed view it builds from three projection rows.
 import { expect, test } from "vitest";
-import { composed } from "../option-b-events/query-service/src/index.js";
+import { composed } from "../patterns/event-projections/query-service/src/index.js";
 
 const person = { id: "person-1", name: "A", email: "a@x", hire_date: null, active: 1, last_updated: 1000 };
 const employee = { id: "emp-1", title: "T", department: "D", salary: 1, active: 1, last_updated: 4000 };

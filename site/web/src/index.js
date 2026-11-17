@@ -1,14 +1,14 @@
 // The Lunch & Learn site. Serves the lesson pages (./public) and one same-origin /api that
-// passes each call on to Option A's router or one of Option B's services over a service
+// passes each call on to the federation router or one of the event-projection services over a service
 // binding. It also sets the visitor's lesson switches (../lesson).
 
 // /api/<prefix>/rest -> the Worker bound as `binding`, at `path` + /rest
 const UPSTREAM = {
-  federation: { binding: "ROUTER", path: "/graphql" },           // Option A
-  "hr-events": { binding: "HR_EVENTS", path: "/api" },            // Option B, write side
+  federation: { binding: "ROUTER", path: "/graphql" },           // federation pattern
+  "hr-events": { binding: "HR_EVENTS", path: "/api" },            // event-projections pattern, write side
   "employment-events": { binding: "EMPLOYMENT_EVENTS", path: "/api" },
   "security-events": { binding: "SECURITY_EVENTS", path: "/api" },
-  query: { binding: "QUERY", path: "/api" },                      // Option B, read side
+  query: { binding: "QUERY", path: "/api" },                      // event-projections pattern, read side
   consumer: { binding: "CONSUMER", path: "/api" },
 };
 

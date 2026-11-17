@@ -25,7 +25,7 @@
 
   <div class="cols">
     <section class="panel fed">
-      <h2>Option A · GraphQL Federation</h2>
+      <h2>GraphQL Federation</h2>
       <p class="desc">Mutation → router → HR subgraph → HR database. The response means the row is committed where every read will look.</p>
       <pre id="fed-code">mutation {
   createPerson(name: "…", email: "…") { id name }
@@ -37,7 +37,7 @@
       <pre class="console" id="fed-log"></pre>
     </section>
     <section class="panel evt">
-      <h2>Option B · Event-driven projection</h2>
+      <h2>Event-driven projection</h2>
       <p class="desc">POST → HR events service → HR database <em>and</em> outbox row, one transaction. The response comes back now; the projection catches up after.</p>
       <pre id="evt-code">POST /api/persons
 { "name": "…", "email": "…", "hireDate": "…" }</pre>

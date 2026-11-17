@@ -1,0 +1,16 @@
+{
+  // hr-events: REST writes + transactional outbox; the relay publishes to the lnl-events-hr-person queue.
+  "name": "lnl-hr-events",
+  "main": "src/index.js",
+  "workers_dev": false,  // internal: reached only through service bindings and queues
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [{ "binding": "DB", "database_name": "lnl-hr-events", "database_id": "e35e7d7b-ea96-4fdc-94e8-d05c973af394", "migrations_dir": "migrations" }],
+  "queues": { "producers": [{ "binding": "TOPIC", "queue": "lnl-events-hr-person" }] },
+  "durable_objects": { "bindings": [
+    { "name": "RELAY", "class_name": "OutboxRelay" },
+    { "name": "LESSON", "class_name": "Lesson", "script_name": "lnl-lesson" }
+  ] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["OutboxRelay"] }],
+  "triggers": { "crons": ["*/5 * * * *"] }
+}

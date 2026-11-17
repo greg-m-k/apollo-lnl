@@ -29,7 +29,7 @@
 
   <div class="cols">
     <section class="panel fed">
-      <h2>Option A · GraphQL Federation</h2>
+      <h2>GraphQL Federation</h2>
       <p class="desc">The router still answers, but only with what it could fetch. Missing parts come back <code>null</code>, with an error naming the subgraph.</p>
       <div class="timeline" id="fed-timeline"><p class="status">Run it.</p></div>
       <div class="pane-title">Answer</div>
@@ -38,7 +38,7 @@
       <pre class="console" id="fed-log"></pre>
     </section>
     <section class="panel evt">
-      <h2>Option B · Event-driven projection</h2>
+      <h2>Event-driven projection</h2>
       <p class="desc">The query service never calls HR, Employment or Security, so their outage does not reach it. The cost: the answer is only as fresh as the last event.</p>
       <div class="timeline" id="evt-timeline"><p class="status">Run it.</p></div>
       <div class="pane-title">Answer</div>

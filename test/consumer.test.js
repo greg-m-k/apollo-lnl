@@ -1,11 +1,11 @@
-// Option B's projection consumer against a real SQLite schema: what a batch of events
+// The event-projections pattern's projection consumer against a real SQLite schema: what a batch of events
 // from a topic does to the projections.
 import { readFileSync } from "node:fs";
 import { beforeEach, expect, test } from "vitest";
 import { fakeD1 } from "./fake-d1.js";
-import consumer from "../option-b-events/projection-consumer/src/index.js";
+import consumer from "../patterns/event-projections/projection-consumer/src/index.js";
 
-const SCHEMA = readFileSync(new URL("../option-b-events/projection-consumer/migrations/0001_projections.sql", import.meta.url), "utf8");
+const SCHEMA = readFileSync(new URL("../patterns/event-projections/projection-consumer/migrations/0001_projections.sql", import.meta.url), "utf8");
 const PERSONS = "lnl-events-hr-person";
 const EMPLOYEES = "lnl-events-employment-employee";
 const T0 = "2026-11-17T00:00:00.000Z";

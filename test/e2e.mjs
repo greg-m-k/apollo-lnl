@@ -170,7 +170,7 @@ test("list endpoints answer with arrays", async () => {
   }
 });
 
-test("Option B's write services: every route, and the projection follows", async () => {
+test("the event services: every route, and the projection follows", async () => {
   const s = session();
   const p = await json(post(s, "hr-events/persons", { name: "Route Ray", email: "ray@company.com" }));
   assert.equal((await json(api(s, `hr-events/persons/${p.id}`))).name, "Route Ray");

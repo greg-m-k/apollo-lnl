@@ -1,0 +1,11 @@
+{
+  // employment subgraph Worker with its own D1 database (apollo-demo employment_db).
+  "name": "lnl-employment-subgraph",
+  "main": "src/index.js",
+  "workers_dev": false,  // internal: reached only through service bindings and queues
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "rules": [{ "type": "Text", "globs": ["**/*.graphql"], "fallthrough": true }],
+  "d1_databases": [{ "binding": "DB", "database_name": "lnl-employment", "database_id": "ef3f1c54-cce7-478b-a0c4-a60d42ad22d4", "migrations_dir": "migrations" }],
+  "triggers": { "crons": ["*/5 * * * *"] }
+}
