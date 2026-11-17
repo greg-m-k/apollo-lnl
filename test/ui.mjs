@@ -91,6 +91,15 @@ test("tradeoffs: measures both paths", async () => {
   await shot("tradeoffs");
 });
 
+test("every page fits a phone screen without sideways scrolling", async () => {
+  await page.setViewportSize({ width: 390, height: 800 });
+  for (const path of ["", "start/", "read/", "failure/", "write/", "bus/", "tradeoffs/", "port/"]) {
+    await page.goto(`${BASE}/${path}`);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), 0, path || "home");
+  }
+  await page.setViewportSize({ width: 1280, height: 900 });
+});
+
 test("port page renders and nothing logged an error", async () => {
   await page.goto(`${BASE}/port/`);
   assert.match(await page.textContent("h1"), /Cloudflare/);
