@@ -18,13 +18,17 @@ function showCode() {
   $("#evt-code").textContent = `GET /api/composed/${id}`;
 }
 
+// "router request #1 (just started)": the first request a fresh copy of a Worker serves is the slow one.
+const fresh = (who, n, firstWork) => (n == null ? "" : ` · ${who} request #${n}${n === 1 ? ` (just started: ${firstWork})` : ""}`);
+
 async function askFederation(id) {
   const delay = delays();
   const r = await federation(PERSON_QUERY(id), { delay });
   timeline($("#fed-timeline"), fedLanes(r, "Router (whole query)", (s) => (delay[s] ? ` (+${delay[s]}ms)` : "")));
   kv($("#fed-result"), fedRows(r.body.data?.person));
   const parts = SUBGRAPHS.map((s) => `${s} ${r.subgraphs[s].ms ?? "-"}ms`).join(", ");
-  fedLog.log(`${r.total}ms in the browser, router ${r.router}ms [${parts}]`, r.body.errors ? "err" : "ok");
+  fedLog.log(`${r.total}ms in the browser, router ${r.router}ms [${parts}]${fresh("router", r.routerRequest, "it read the supergraph and planned the query")}`,
+    r.body.errors ? "err" : "ok");
   for (const e of r.body.errors ?? []) fedLog.log(`error: ${e.message}`, "err");
   return r.total;
 }
@@ -39,7 +43,7 @@ async function askProjection(id) {
   ]);
   kv($("#evt-result"), evtRows(r.ok ? r.data : null));
   evtLog.log(r.ok
-    ? `${r.total}ms in the browser, service ${r.server}ms (DB ${db}ms), data ${r.data.freshness.dataFreshness} old`
+    ? `${r.total}ms in the browser, service ${r.server}ms (DB ${db}ms), data ${r.data.freshness.dataFreshness} old${fresh("query service", r.request, "its database connection opened")}`
     : `${r.status}: ${JSON.stringify(r.data)}`, r.ok ? "ok" : "err");
   return r.total;
 }

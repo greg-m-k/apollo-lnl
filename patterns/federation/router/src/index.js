@@ -42,6 +42,7 @@ function gateway(env) {
 }
 
 let runtime;
+let served = 0;  // requests this copy of the router has served; 1 means it has just started
 export default {
   async fetch(request, env, executionContext) {
     runtime ??= gateway(env);
@@ -53,6 +54,7 @@ export default {
     for (const [name, value] of Object.entries(trace.timings)) headers.set(name, value);
     headers.set("x-lnl-fetches", JSON.stringify(trace.calls));
     headers.set("x-router-time-ms", String(Math.round(performance.now() - trace.started)));
+    headers.set("x-router-request", String(++served));
     return new Response(response.body, { status: response.status, headers });
   },
 };

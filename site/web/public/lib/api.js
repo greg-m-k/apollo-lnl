@@ -27,6 +27,7 @@ export async function federation(query, chaos = {}) {
   const h = res.headers;
   return {
     body, total: Math.round(performance.now() - t0), router: ms(h, "x-router-time-ms"),
+    routerRequest: ms(h, "x-router-request"),  // 1: this copy of the router had just started
     fetches: json(h, "x-lnl-fetches") ?? [],
     subgraphs: Object.fromEntries(SUBGRAPHS.map((s) =>
       [s, { ms: ms(h, `x-${s}-time-ms`), details: json(h, `x-${s}-timing-details`) }])),
@@ -43,6 +44,7 @@ export async function rest(path, { method = "GET", body } = {}) {
   return {
     status: res.status, ok: res.ok, data, total: Math.round(performance.now() - t0),
     server: ms(res.headers, "x-time-ms"), details: json(res.headers, "x-timing-details"),
+    request: ms(res.headers, "x-request"),  // 1: this copy of the service had just started
   };
 }
 

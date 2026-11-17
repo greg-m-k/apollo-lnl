@@ -80,6 +80,7 @@ function human(ms) {
   return `${(ms / 60000).toFixed(1)}m`;
 }
 
+let served = 0;  // requests this copy of the service has served; 1 means it has just started
 export default {
   async fetch(request, env) {
     const started = Date.now();
@@ -89,6 +90,7 @@ export default {
     const total = Date.now() - started;
     response.headers.set("x-time-ms", String(total));
     response.headers.set("x-timing-details", JSON.stringify({ db: c.dbMs, total }));
+    response.headers.set("x-request", String(++served));
     return response;
   },
 };

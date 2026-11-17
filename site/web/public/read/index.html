@@ -59,6 +59,13 @@
     </section>
   </div>
 
+  <div class="callout" id="first-run">The first run is usually the slowest: on the live site often over a second, against about
+    150ms after that. Each service is a Cloudflare Worker, and a Worker that has not served anyone for a while starts afresh. It loads
+    its code, the router reads the supergraph and works out the query plan, and each database opens its connection. Later runs reuse
+    all of that. A federated read goes through four Workers (the router, HR, Employment and Security), so it has four chances to meet
+    one that is starting; a projection read goes through one. The console numbers the requests each copy has served, and request #1
+    is a fresh start. In the apollo-demo the services run all the time, so you see this only after a deploy or a restart.</div>
+
   <div class="callout insight" id="insight">Federation's total is roughly <em>router + HR + the slower of Employment and Security</em>:
     the two run side by side, but both wait for HR, because they need the Person it returns. The projection's total is one database read,
     whatever the three teams' services are doing.</div>
