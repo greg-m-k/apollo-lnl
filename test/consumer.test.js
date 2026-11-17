@@ -1,10 +1,13 @@
-// The projection consumer against a real SQLite schema: what a queue batch does to the read models.
+// Option B's projection consumer against a real SQLite schema: what a batch of events
+// from a topic does to the projections.
 import { readFileSync } from "node:fs";
 import { beforeEach, expect, test } from "vitest";
 import { fakeD1 } from "./fake-d1.js";
-import consumer from "../workers/projection-consumer/src/index.js";
+import consumer from "../option-b-events/projection-consumer/src/index.js";
 
-const SCHEMA = readFileSync(new URL("../workers/projection-consumer/migrations/0001_projections.sql", import.meta.url), "utf8");
+const SCHEMA = readFileSync(new URL("../option-b-events/projection-consumer/migrations/0001_projections.sql", import.meta.url), "utf8");
+const PERSONS = "lnl-events-hr-person";
+const EMPLOYEES = "lnl-events-employment-employee";
 const T0 = "2026-11-17T00:00:00.000Z";
 const T1 = "2026-11-17T00:00:05.000Z";
 
@@ -18,48 +21,49 @@ beforeEach(() => {
   };
 });
 
-function message(body) {
+// A queue message as the relay publishes it: the event plus whose it is and when it left.
+function message(event, session = "s1") {
   const m = {
-    body: { session: "s1", publishedAt: Date.parse(body.timestamp) + 50, ...body }, attempts: 1, acked: false, retried: null,
+    body: { ...event, session, publishedAt: Date.parse(event.timestamp) + 50 }, attempts: 1, acked: false, retried: null,
     ack() { m.acked = true; },
     retry(options) { m.retried = options; },
   };
   return m;
 }
-const personEvent = (id, name, timestamp = T0, more = {}) => message({
-  eventType: "PersonCreated", topic: "hr.person", aggregateId: id, personId: id, timestamp,
-  data: { id, name, email: `${id}@company.com`, hireDate: null, active: true }, ...more,
-});
-const deliver = (...messages) => consumer.queue({ messages }, env);
+const personEvent = (id, name, timestamp = T0, session) => message({
+  eventType: "PersonCreated", personId: id, timestamp,
+  data: { id, name, email: `${id}@company.com`, hireDate: null, active: true },
+}, session);
+const deliver = (queue, ...messages) => consumer.queue({ queue, messages }, env);
 const first = (sql, ...args) => env.DB.prepare(sql).bind(...args).first();
 const person = (id) => first("SELECT * FROM person_projections WHERE id = ?", id);
 const timings = async (id) => (await first("SELECT COUNT(*) AS n FROM propagation_timing WHERE entity_id = ?", id)).n;
 
 test("an event becomes a projection row with its timing, and is acknowledged", async () => {
   const m = personEvent("person-x", "Xena");
-  await deliver(m);
+  await deliver(PERSONS, m);
   expect(await person("person-x")).toMatchObject({ name: "Xena", session: "s1", active: 1, hire_date: null, event_version: 1 });
   expect(await timings("person-x")).toBe(1);
   expect(m.acked).toBe(true);
 });
 
 test("the same event delivered again, or twice in one batch, is applied once", async () => {
-  await deliver(personEvent("person-x", "Xena"), personEvent("person-x", "Xena"));
-  await deliver(personEvent("person-x", "Xena"));
+  await deliver(PERSONS, personEvent("person-x", "Xena"), personEvent("person-x", "Xena"));
+  await deliver(PERSONS, personEvent("person-x", "Xena"));
   expect((await person("person-x")).event_version).toBe(1);
   expect(await timings("person-x")).toBe(1);
 });
 
 test("a later event overwrites the row and raises its version", async () => {
-  await deliver(personEvent("person-x", "Xena"));
-  await deliver(personEvent("person-x", "Xena Prime", T1));
+  await deliver(PERSONS, personEvent("person-x", "Xena"));
+  await deliver(PERSONS, personEvent("person-x", "Xena Prime", T1));
   expect(await person("person-x")).toMatchObject({ name: "Xena Prime", event_version: 2 });
   expect(await timings("person-x")).toBe(2);
 });
 
 test("an employee event lands in the employee projection", async () => {
-  await deliver(message({
-    eventType: "EmployeeAssigned", topic: "employment.employee", aggregateId: "emp-x", employeeId: "emp-x", timestamp: T0,
+  await deliver(EMPLOYEES, message({
+    eventType: "EmployeeAssigned", employeeId: "emp-x", timestamp: T0,
     data: { id: "emp-x", personId: "person-x", title: "Pilot", department: "Ops", salary: 100, active: true },
   }));
   expect(await first("SELECT * FROM employee_projections WHERE id = 'emp-x'"))
@@ -69,8 +73,8 @@ test("an employee event lands in the employee projection", async () => {
 test("a paused session's events go back on the queue while other sessions' are applied", async () => {
   paused.add("s1");
   const held = personEvent("person-x", "Xena");
-  const live = personEvent("person-y", "Yara", T0, { session: "s2" });
-  await deliver(held, live);
+  const live = personEvent("person-y", "Yara", T0, "s2");
+  await deliver(PERSONS, held, live);
   expect(held).toMatchObject({ acked: false, retried: { delaySeconds: 2 } });
   expect(await person("person-x")).toBeNull();
   expect(live.acked).toBe(true);

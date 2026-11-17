@@ -1,13 +1,20 @@
 // End-to-end checks against a running demo: BASE=http://localhost:8800 node --test test/e2e.mjs
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { CHAOS_HEADER, SESSION_HEADER } from "../shared/chaos.js";
-import { newId } from "../shared/rows.js";
-import { sleep, until } from "../workers/web/public/lib/api.js";
 
 const BASE = process.env.BASE ?? "http://localhost:8800";
-const session = () => newId("e2e");
-const eventually = async (fn) => (await until(fn))[0];
+const SESSION_HEADER = "x-lnl-session";
+const CHAOS_HEADER = "x-lnl-chaos";
+const session = () => `e2e-${crypto.randomUUID().slice(0, 8)}`;
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Poll until fn is true, for up to 15 s.
+async function eventually(fn) {
+  for (const end = Date.now() + 15000; Date.now() < end; await sleep(100)) {
+    if (await fn()) return true;
+  }
+  return false;
+}
 
 async function gql(s, query, chaos = {}) {
   const res = await fetch(`${BASE}/api/federation`, {
@@ -161,6 +168,62 @@ test("list endpoints answer with arrays", async () => {
     assert.equal(res.status, 200, path);
     assert.ok(Array.isArray(await res.json()), path);
   }
+});
+
+test("Option B's write services: every route, and the projection follows", async () => {
+  const s = session();
+  const p = await json(post(s, "hr-events/persons", { name: "Route Ray", email: "ray@company.com" }));
+  assert.equal((await json(api(s, `hr-events/persons/${p.id}`))).name, "Route Ray");
+
+  const e = await json(post(s, "employment-events/employees", { personId: p.id, title: "Pilot", department: "Ops", salary: 100 }));
+  assert.equal((await json(api(s, `employment-events/employees/${e.id}`))).title, "Pilot");
+  assert.equal((await json(put(s, `employment-events/employees/${e.id}/transfer?department=Air`))).department, "Air");
+  assert.equal((await json(post(s, `employment-events/employees/${e.id}/terminate`))).active, false);
+
+  const b = await json(post(s, "security-events/badges", { personId: p.id, accessLevel: "STANDARD", clearance: "NONE" }));
+  assert.equal((await json(api(s, `security-events/badges/${b.id}`))).badgeNumber, b.badgeNumber);
+  assert.equal((await json(api(s, `security-events/badges/by-person/${p.id}`))).id, b.id);
+  assert.equal((await post(s, "security-events/badges", { personId: p.id, accessLevel: "STANDARD", clearance: "NONE" })).status, 409);
+  assert.equal((await json(put(s, `security-events/badges/${b.id}/access-level?level=RESTRICTED`))).accessLevel, "RESTRICTED");
+  assert.equal((await json(post(s, `security-events/badges/${b.id}/revoke`))).active, false);
+  assert.equal((await json(post(s, `hr-events/persons/${p.id}/terminate`))).active, false);
+
+  assert.ok(await eventually(async () => {
+    const v = await json(composed(s, p.id));
+    return v.personActive === false && v.department === "Air" && v.employeeActive === false
+      && v.accessLevel === "RESTRICTED" && v.badgeActive === false;
+  }));
+});
+
+test("bad requests are refused with a 400", async () => {
+  const s = session();
+  assert.equal((await post(s, "hr-events/persons", { name: "No Email" })).status, 400);
+  assert.equal((await post(s, "employment-events/employees", { personId: "person-001" })).status, 400);
+  assert.equal((await post(s, "security-events/badges", { personId: "person-004", accessLevel: "NOPE", clearance: "NONE" })).status, 400);
+  const noSession = await fetch(`${BASE}/api/hr-events/persons`, {
+    method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: "No One", email: "no@company.com" }),
+  });
+  assert.equal(noSession.status, 400);
+});
+
+test("a malformed lesson-switch header is ignored", async () => {
+  const res = await fetch(`${BASE}/api/federation`, {
+    method: "POST", headers: { "content-type": "application/json", [SESSION_HEADER]: session(), [CHAOS_HEADER]: "{nope" },
+    body: JSON.stringify({ query: PERSON }),
+  });
+  const body = await res.json();
+  assert.equal(body.data.person.badge.badgeNumber, "B10001");
+  assert.equal(body.errors, undefined);
+});
+
+test("the projections report their freshness and size", async () => {
+  const s = session();
+  for (const path of ["query/freshness", "consumer/metrics/freshness"]) {
+    const report = await json(api(s, path));
+    assert.ok(report.person.lagMs >= 0 && report.employee.lagHuman && report.badge.lastUpdate, path);
+  }
+  const counts = await json(api(s, "consumer/metrics/counts"));
+  assert.ok(counts.persons >= 5 && counts.employees >= 4 && counts.badges >= 4);
 });
 
 test("unknown people are 404 on the event side", async () => {

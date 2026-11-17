@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>When a service goes down · Lunch & Learn</title>
+<link rel="stylesheet" href="/styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='9' cy='16' r='6' fill='%232563eb'/%3E%3Ccircle cx='23' cy='16' r='6' fill='%2316a34a'/%3E%3C/svg%3E">
+</head>
+<body>
+<main>
+  <h1>When a service goes down</h1>
+  <p class="lead">Security is having a bad afternoon. Switch its service off and ask both sides again.
+    Federation needs every owner to answer right now; the projection answers from its last copy.</p>
+
+  <div class="panel">
+    <div class="bar">
+      <span class="status">Switch services off (only for you):</span>
+      <button class="switch" id="sw-hr" aria-pressed="false">HR</button>
+      <button class="switch" id="sw-employment" aria-pressed="false">Employment</button>
+      <button class="switch" id="sw-security" aria-pressed="false">Security</button>
+    </div>
+    <div class="bar">
+      <label>Person <select id="person"><option value="person-001">Alice Johnson (person-001)</option></select></label>
+      <button class="primary" id="run">▶ Ask both</button>
+      <span class="status" id="status">Ready</span>
+    </div>
+  </div>
+
+  <div class="cols">
+    <section class="panel fed">
+      <h2>Option A · GraphQL Federation</h2>
+      <p class="desc">The router still answers, but only with what it could fetch. Missing parts come back <code>null</code>, with an error naming the subgraph.</p>
+      <div class="timeline" id="fed-timeline"><p class="status">Run it.</p></div>
+      <div class="pane-title">Answer</div>
+      <table class="kv" id="fed-result"></table>
+      <div class="pane-title">Errors</div>
+      <pre class="console" id="fed-log"></pre>
+    </section>
+    <section class="panel evt">
+      <h2>Option B · Event-driven projection</h2>
+      <p class="desc">The query service never calls HR, Employment or Security, so their outage does not reach it. The cost: the answer is only as fresh as the last event.</p>
+      <div class="timeline" id="evt-timeline"><p class="status">Run it.</p></div>
+      <div class="pane-title">Answer</div>
+      <table class="kv" id="evt-result"></table>
+      <div class="pane-title">Console</div>
+      <pre class="console" id="evt-log"></pre>
+    </section>
+  </div>
+
+  <div class="callout insight">Things to try:
+    <ul>
+      <li>Security off: federation returns the name and job but <code>badge: null</code>. Is a half answer better than none for your screen?</li>
+      <li>HR off: Employment and Security are fine, yet federation returns nothing at all. HR owns the Person every other part hangs off.</li>
+      <li>Everything off: the projection still answers. Note its data freshness: nothing is updating it while the owners are down.</li>
+    </ul>
+    In the Apollo version this lesson meant <code>kubectl scale deployment security-subgraph --replicas=0</code>. Here a switch on your request tells that subgraph to fail, for you only.</div>
+</main>
+<script type="module" src="./failure.js"></script>
+</body>
+</html>
