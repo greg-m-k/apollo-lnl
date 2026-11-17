@@ -25,6 +25,9 @@ h2 { font-size: 1.25rem; margin: 0 0 .25em; }
 h3 { font-size: 1rem; margin: 0 0 .2em; }
 p { margin: .4em 0 .8em; }
 .lead { color: var(--muted); }
+/* Each pattern keeps one colour wherever it is named: prose, panel headings, timeline bars. */
+.fed-name { color: var(--fed); } .evt-name { color: var(--evt); }
+.panel.fed > h2 { color: var(--fed); } .panel.evt > h2 { color: var(--evt); }
 .prose > h2 { margin-top: 1.6em; }
 .prose .panel p, .prose .panel dl { font-size: .97rem; }
 .prose > p, .prose > ol { max-width: none; }

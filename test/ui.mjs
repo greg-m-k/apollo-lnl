@@ -21,7 +21,9 @@ const shot = (name) => SHOTS && page.screenshot({ path: `${SHOTS}/${name}.png`, 
 test("home lists the start page and the six lessons", async () => {
   await page.goto(BASE);
   assert.equal(await page.locator(".card").count(), 7);
-  assert.match(await page.textContent(".lead"), /Nothing here is mocked/);
+  assert.match(await page.textContent("header"), /Nothing here is mocked/);
+  assert.match(await page.textContent("header strong"), /format/);
+  assert.ok(await page.locator("header p").count() >= 3, "the introduction is several short paragraphs");
   // The source belongs to the topic it teaches, not to the page's opening summary.
   const repo = 'a[href="https://github.com/greg-m-k/apollo-lnl"]';
   assert.equal(await page.locator(`header ${repo}, footer ${repo}`).count(), 0);
@@ -112,6 +114,18 @@ test("footers credit the author; notes about your data sit on the pages that mak
     // Plain statements: no "Neither ...", no "X, not Y" contrasts, no slogans.
     assert.doesNotMatch(text, /Neither|, not (a|an|the) |is the lesson|bargain/, path || "home");
   }
+});
+
+test("the two patterns keep their colours in the text that names them", async () => {
+  const colour = (sel) => page.locator(sel).first().evaluate((e) => getComputedStyle(e).color);
+  for (const path of ["", "read/", "failure/", "write/", "bus/", "tradeoffs/"]) {
+    await page.goto(`${BASE}/${path}`);
+    assert.equal(await colour(".fed-name"), "rgb(37, 99, 235)", path || "home");
+    assert.equal(await colour(".evt-name"), "rgb(22, 163, 74)", path || "home");
+  }
+  await page.goto(`${BASE}/start/`);
+  assert.equal(await colour(".panel.fed > h2"), "rgb(37, 99, 235)");
+  assert.equal(await colour(".panel.evt > h2"), "rgb(22, 163, 74)");
 });
 
 test("every page fits a phone screen without sideways scrolling", async () => {

@@ -12,18 +12,23 @@
 <main class="home">
   <header>
     <h1>Lunch &amp; Learn</h1>
-    <p class="lead">A Lunch &amp; Learn is a format, and this page is an invitation to copy it. Take one design question your team keeps
-      arguing about, build every competing answer for real, and run them side by side. Nothing here is mocked: every router, service,
-      database, queue and consumer is really running, and every number on screen is measured while you watch. Learn by doing: run it,
-      slow a service down, switch one off, and see for yourself what each pattern costs. Then build your own.</p>
+    <p class="lead">Welcome. <strong>A Lunch &amp; Learn is a format</strong>: one design question your team keeps debating, every
+      answer to it built for real, and an hour to try them side by side.</p>
+    <p class="lead">These pages are written for senior engineers and architects. You will know many of these trade-offs from
+      experience; here you can measure them. Nothing here is mocked. Every service, database and queue is running, and every
+      number is timed while you watch.</p>
+    <p class="lead">Pick a topic and press play. Slow a service down, switch one off, and see how each pattern behaves. If a
+      question from your own work comes to mind, build a topic for it and share it the same way.</p>
   </header>
 
   <section class="topic" aria-labelledby="topic-0">
     <h2 id="topic-0"><span aria-hidden="true">🧩</span> Federated Services vs Event-Driven Projections</h2>
     <p>Most companies split their software by <em>domain</em>: one service owns people, another owns jobs, another owns security
-      badges, each with its own team and database. A single screen often needs all three. <strong>Federated services</strong> ask every
-      owning service at the moment of the request and combine the replies. <strong>Event-driven projections</strong> keep a combined copy
-      up to date from each service's events and answer from that. These lessons run both against the same data and measure what each costs
+      badges, each with its own team and database. A single screen often needs all three.</p>
+    <p><strong class="fed-name">Federated services</strong> ask every
+      owning service at the moment of the request and combine the replies. <strong class="evt-name">Event-driven projections</strong> keep a combined copy
+      up to date from each service's events and answer from that. </p>
+    <p>These lessons run both against the same data and measure what each costs
       in speed, freshness and failure. The <a href="https://github.com/greg-m-k/apollo-lnl">source for this topic is on GitHub</a>:
       each pattern in its own folder, one plain file per service.</p>
     <ul class="cards">

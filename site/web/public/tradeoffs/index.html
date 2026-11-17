@@ -10,8 +10,8 @@
 <body>
 <main>
   <h1>Federated Services vs Event-Driven Projections: so which one?</h1>
-  <p class="lead">Federated services give you answers that are always current, and couple every read to every
-    owning service. Event-driven projections give you fast reads that survive outages, and answers that can be slightly out of date. The right
+  <p class="lead"><strong class="fed-name">Federated services</strong> give you answers that are always current, and couple every read to every
+    owning service. <strong class="evt-name">Event-driven projections</strong> give you fast reads that survive outages, and answers that can be slightly out of date. The right
     choice depends on what a given screen needs from freshness, availability and latency. Measure both read and write paths here, in your own
     browser, then read the table with your own numbers.</p>
 
@@ -25,7 +25,7 @@
 
   <div class="panel">
     <table class="kv">
-      <tr><th></th><td><strong style="color:var(--fed)">Federated services</strong></td><td><strong style="color:var(--evt)">Event-driven projections</strong></td></tr>
+      <tr><th></th><td><strong class="fed-name">Federated services</strong></td><td><strong class="evt-name">Event-driven projections</strong></td></tr>
       <tr><th>Query latency</th><td>Higher: the router waits for several services, in sequence where they depend on each other</td><td>Lower: one local database</td></tr>
       <tr><th>Data freshness</th><td>Real-time: every read asks the owner</td><td>Eventually consistent: as fresh as the last event applied</td></tr>
       <tr><th>Service coupling</th><td>Tight: every owner must be up for a full answer</td><td>Loose: owners and readers meet only through the bus</td></tr>

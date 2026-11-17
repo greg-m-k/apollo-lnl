@@ -11,8 +11,8 @@
 <main>
   <h1>Write, then read</h1>
   <p class="lead">HR hires someone. Create them through both patterns, then read them back straight away.
-    With federated services the write goes to the service that owns the data and the read comes from that same service, so the new person is there at once.
-    With event-driven projections the write also goes to the owner, but reads come from a copy: the owner stores an event in its outbox, a relay
+    With <strong class="fed-name">federated services</strong> the write goes to the service that owns the data and the read comes from that same service, so the new person is there at once.
+    With <strong class="evt-name">event-driven projections</strong> the write also goes to the owner, but reads come from a copy: the owner stores an event in its outbox, a relay
     publishes it to a topic, and a consumer applies it to the projection. Until that has happened, a read finds nothing. This gap is what
     "eventual consistency" means in practice, and the lesson measures it.</p>
 
