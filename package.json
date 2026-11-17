@@ -1,0 +1,23 @@
+{
+  "name": "apollo-lnl",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "dev": "node scripts/dev.mjs"
+  },
+  "dependencies": {
+    "@apollo/subgraph": "^2.16.0",
+    "@graphql-hive/gateway-runtime": "^2.13.5",
+    "@graphql-mesh/transport-http": "^1.2.6",
+    "graphql-yoga": "^6.1.0"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.23.0",
+    "@cloudflare/workers-types": "^5.20261117.1",
+    "graphql": "^16.15.0",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.12",
+    "wrangler": "^4.163.0"
+  }
+}

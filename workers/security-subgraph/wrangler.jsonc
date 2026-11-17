@@ -1,0 +1,9 @@
+{
+  // security subgraph Worker with its own D1 database (apollo-demo security_db).
+  "name": "lnl-security-subgraph",
+  "main": "src/index.js",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "rules": [{ "type": "Text", "globs": ["**/*.graphql"], "fallthrough": true }],
+  "d1_databases": [{ "binding": "DB", "database_name": "lnl-security", "database_id": "local-lnl-security", "migrations_dir": "migrations" }]
+}

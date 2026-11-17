@@ -1,0 +1,13 @@
+{
+  // Federation router Worker (Hive Gateway over the committed supergraph).
+  "name": "lnl-router",
+  "main": "src/index.js",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "rules": [{ "type": "Text", "globs": ["**/*.graphql"], "fallthrough": true }],
+  "services": [
+    { "binding": "HR", "service": "lnl-hr-subgraph" },
+    { "binding": "EMPLOYMENT", "service": "lnl-employment-subgraph" },
+    { "binding": "SECURITY", "service": "lnl-security-subgraph" }
+  ]
+}

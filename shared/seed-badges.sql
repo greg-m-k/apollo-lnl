@@ -1,0 +1,5 @@
+INSERT INTO badge_holders (id, session, person_id, badge_number, access_level, clearance, active) VALUES
+  ('badge-001', '', 'person-001', 'B10001', 'RESTRICTED', 'SECRET', 1),
+  ('badge-002', '', 'person-002', 'B10002', 'ALL_ACCESS', 'TOP_SECRET', 1),
+  ('badge-003', '', 'person-003', 'B10003', 'STANDARD', 'CONFIDENTIAL', 1),
+  ('badge-005', '', 'person-005', 'B10005', 'RESTRICTED', 'SECRET', 1);
