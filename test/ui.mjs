@@ -156,6 +156,16 @@ test("start here: headings stand out from body text in light and dark", async ()
   }
 });
 
+test("paragraphs have visible space between them on every page", async () => {
+  for (const path of ["", "start/", "read/", "failure/", "write/", "bus/", "tradeoffs/", "port/"]) {
+    await page.goto(`${BASE}/${path}`);
+    const gaps = await page.evaluate(() => [...document.querySelectorAll("main p + p")]
+      .filter((p) => p.offsetParent && p.previousElementSibling.offsetParent)
+      .map((p) => Math.round(p.getBoundingClientRect().top - p.previousElementSibling.getBoundingClientRect().bottom)));
+    for (const gap of gaps) assert.ok(gap >= 12, `${path || "home"}: ${gap}px between paragraphs`);
+  }
+});
+
 test("every page fits a phone screen without sideways scrolling", async () => {
   await page.setViewportSize({ width: 390, height: 800 });
   for (const path of ["", "start/", "read/", "failure/", "write/", "bus/", "tradeoffs/", "port/"]) {
