@@ -23,6 +23,7 @@ test("home lists the start page and the six lessons", async () => {
   assert.equal(await page.locator(".card").count(), 7);
   assert.match(await page.textContent("header"), /Nothing here is mocked/);
   assert.match(await page.textContent("header strong"), /format/);
+  assert.equal(await page.locator('header a[href="https://lnl.sam-peterson.com"]').count(), 1, "credits where the format comes from");
   assert.ok(await page.locator("header p").count() >= 3, "the introduction is several short paragraphs");
   // The source belongs to the topic it teaches, not to the page's opening summary.
   const repo = 'a[href="https://github.com/greg-m-k/apollo-lnl"]';
