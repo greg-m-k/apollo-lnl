@@ -23,6 +23,8 @@ async function lessonSwitches(request, env) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    // Other topics are their own Workers, each serving everything below its own prefix.
+    if (url.pathname === "/effects" || url.pathname.startsWith("/effects/")) return env.EFFECTS.fetch(request);
     const [, api, prefix, ...rest] = url.pathname.split("/");
     if (api !== "api") return env.ASSETS.fetch(request);
     if (prefix === "lesson") return lessonSwitches(request, env);
