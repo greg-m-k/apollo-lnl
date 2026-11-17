@@ -18,9 +18,9 @@ before(async () => {
 after(async () => browser?.close());
 const shot = (name) => SHOTS && page.screenshot({ path: `${SHOTS}/${name}.png`, fullPage: true });
 
-test("home lists the six lessons", async () => {
+test("home lists the start page and the six lessons", async () => {
   await page.goto(BASE);
-  assert.equal(await page.locator(".card").count(), 6);
+  assert.equal(await page.locator(".card").count(), 7);
   await shot("home");
 });
 

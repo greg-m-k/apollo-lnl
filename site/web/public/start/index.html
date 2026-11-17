@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The problem and the two patterns · Lunch & Learn</title>
+<link rel="stylesheet" href="/styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='9' cy='16' r='6' fill='%232563eb'/%3E%3Ccircle cx='23' cy='16' r='6' fill='%2316a34a'/%3E%3C/svg%3E">
+</head>
+<body>
+<main class="prose">
+  <h1>Federated Services vs Event-Driven Projections</h1>
+  <p class="lead">Two patterns for the same problem: a screen needs data that lives in several services. This page explains the problem
+    and both patterns from the ground up. The lessons after it let you run them.</p>
+
+  <h2>Domains and domain services</h2>
+  <p>A <strong>domain</strong> is one area of the business that has its own vocabulary, its own rules and its own data. In this demo there
+    are three. <strong>HR</strong> knows who a person is: name, email, hire date. <strong>Employment</strong> knows their job: title,
+    department, salary. <strong>Security</strong> knows their badge: number, access level, clearance. The word "active" means something
+    different in each: still employed by the company, still in this job, badge not revoked. That difference is the sign of separate domains.</p>
+  <p>A <strong>domain service</strong> is the one service that owns a domain's data. It has its own database, and it is the only thing
+    allowed to change that data. Everyone else must go through its API. One team owns it. The HR service owns the <code>persons</code>
+    table, the Employment service owns <code>employees</code>, the Security service owns <code>badge_holders</code>, and none of them
+    can see the others' tables.</p>
+  <p>Companies split systems this way so teams can work without waiting on each other. Security can change how clearances work and
+    deploy on a Tuesday without a meeting with HR. A bad release in one service cannot corrupt another's data. Each database can be
+    shaped, scaled and secured for its own job. The salary column is not sitting in a database that the badge-printing code can read.</p>
+
+  <h2>The problem</h2>
+  <p>Screens do not respect those boundaries. A reception desk wants to see, for the person in front of it, their name, their job
+    title and their badge's access level. That is one question with three owners. No single service can answer it, and because each
+    service has its own database, nobody can write a SQL join across them.</p>
+  <p>Something has to combine the three. The two patterns differ on <em>when</em> the combining happens: at the moment someone asks,
+    or ahead of time.</p>
+
+  <div class="cols">
+    <section class="panel fed">
+      <h2>Federated services</h2>
+      <p><strong>Combine at the moment of the request.</strong> Each domain service publishes a schema describing the data it owns.
+        A <strong>router</strong> merges those schemas into one, so clients see a single API. When a query arrives, the router works
+        out which service owns each requested field, calls those services, and stitches the replies into one answer.</p>
+<pre>client ──▶ router ──▶ HR          (who is person-001?)
+              ├────▶ Employment  (job of person-001?)
+              └────▶ Security    (badge of person-001?)
+           ◀── one combined answer</pre>
+      <p>This demo uses <strong>GraphQL Federation</strong>, the most common form of it. Its terms:</p>
+      <dl>
+        <dt>Subgraph</dt><dd>One domain service's GraphQL API: the types and fields it owns.</dd>
+        <dt>Supergraph</dt><dd>All the subgraph schemas composed into one. Clients query this.</dd>
+        <dt>Router (or gateway)</dt><dd>The service clients call. It holds the supergraph and does the combining. It owns no data.</dd>
+        <dt>Entity and key</dt><dd>A type that more than one subgraph contributes to, such as <code>Person</code>, and the field that identifies it, <code>id</code>. HR defines <code>Person</code>. Employment adds an <code>employee</code> field to it; Security adds <code>badge</code>. Given only a person's id, each can supply its part.</dd>
+        <dt>Query plan</dt><dd>The router's list of calls for one query, and their order. Here: ask HR for the person first, then, with the id HR returned, ask Employment and Security at the same time.</dd>
+      </dl>
+      <p><strong>What you get:</strong> the answer is always current, because every field comes from its owner right now. Writes are
+        simple: a change goes to the owning service and the next read sees it. There is nothing to keep in sync.</p>
+      <p><strong>What it costs:</strong> every read depends on every owner. The answer is as slow as the slowest chain of calls, and if
+        one service is down, its part of the answer is missing.</p>
+    </section>
+
+    <section class="panel evt">
+      <h2>Event-driven projections</h2>
+      <p><strong>Combine ahead of time.</strong> Whenever a domain service changes its data, it also announces the change as an
+        <strong>event</strong>: a record of something that happened, such as "PersonCreated" or "BadgeRevoked". A separate
+        <strong>consumer</strong> listens to all the events and keeps its own copy of the data, already shaped for the screens that
+        need it. That copy is a <strong>projection</strong>. A screen asks one <strong>query service</strong>, which reads the copy.</p>
+<pre>write:  client ──▶ HR ──▶ its database + outbox
+                          └─▶ topic ─▶ consumer ─▶ projection
+read:   client ──▶ query service ──▶ projection (one local read)</pre>
+      <p>Its terms:</p>
+      <dl>
+        <dt>Event</dt><dd>A fact, in the past tense, published by the service that owns it. In this demo each event carries the full current state of the thing that changed.</dd>
+        <dt>Broker and topic</dt><dd>The messaging system that carries events (Kafka in the original, Cloudflare Queues here), and a named stream of events within it, one per kind of thing.</dd>
+        <dt>Outbox</dt><dd>A table in the owning service's own database. The service writes the data change and the event into its database in one transaction, and a small <strong>relay</strong> publishes the event afterwards. Without this, a crash between "save the row" and "send the event" would lose the event for good.</dd>
+        <dt>Consumer</dt><dd>The service that reads events and updates the projection. The broker may deliver an event twice, so applying the same event again must change nothing. That property is called <strong>idempotent</strong>.</dd>
+        <dt>Projection (or read model)</dt><dd>A copy of other services' data, built from their events and stored in the shape a reader wants. It can always be thrown away and rebuilt from the events.</dd>
+        <dt>Eventual consistency</dt><dd>The copy is correct, but slightly late. After a write there is a short gap, usually well under a second, before the projection shows it.</dd>
+      </dl>
+      <p><strong>What you get:</strong> reads are one local lookup, fast and steady, and they keep working when the owning services,
+        or even the broker, are down.</p>
+      <p><strong>What it costs:</strong> the answer can be out of date, so "write, then immediately read" needs thought. There are
+        more parts to build and run: outbox, relay, broker, consumer, and a second database.</p>
+    </section>
+  </div>
+
+  <h2>What the lessons show</h2>
+  <p>Both patterns run here against the same three domains and the same five seed people. Each lesson asks both the same thing.</p>
+  <ol>
+    <li><a href="/read/">One question, three services</a>: the read path. See the router's query plan as a timeline, slow one service down, and compare with a single local read.</li>
+    <li><a href="/failure/">When a service goes down</a>: switch off HR, Employment or Security and see which answer survives, and in what state.</li>
+    <li><a href="/write/">Write, then read</a>: create a person in both and read straight back. Follow one event through outbox, relay, queue, consumer and projection, with the time each step took.</li>
+    <li><a href="/bus/">When the bus stops</a>: stop the broker, or the consumer, and keep writing. Watch the owner's data and the projection drift apart and meet again with nothing lost.</li>
+    <li><a href="/tradeoffs/">So which one?</a>: measure both yourself and read the tradeoffs with your own numbers.</li>
+    <li><a href="/port/">How this runs on Cloudflare</a>: what each part is built from.</li>
+  </ol>
+  <div class="callout insight">Neither pattern is the better one. Federated services buy freshness and simplicity and pay with coupling at
+    read time. Event-driven projections buy fast, independent reads and pay with staleness and more machinery. Many systems use both:
+    federate the few fields that must be live, and project the rest.</div>
+</main>
+<script type="module">import { crumbs } from "/lib/ui.js"; crumbs();</script>
+</body>
+</html>

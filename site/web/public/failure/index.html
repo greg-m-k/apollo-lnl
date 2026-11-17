@@ -10,8 +10,10 @@
 <body>
 <main>
   <h1>When a service goes down</h1>
-  <p class="lead">Security is having a bad afternoon. Switch its service off and ask both sides again.
-    Federation needs every owner to answer right now; the projection answers from its last copy.</p>
+  <p class="lead">Services fail: a bad deploy, a full disk, a network partition. Here the Security team's service is having a bad afternoon.
+    Switch it off and ask both patterns the same question again. Federated services need every owning service to answer at the moment of the
+    request, so an outage shows up in the answer straight away. The projection is a copy that was built earlier, so it still answers,
+    but nothing is updating it while the owner is down. The question for your own system is which of those two failures a screen can live with.</p>
 
   <div class="panel">
     <div class="bar">
@@ -29,7 +31,7 @@
 
   <div class="cols">
     <section class="panel fed">
-      <h2>GraphQL Federation</h2>
+      <h2>Federated services</h2>
       <p class="desc">The router still answers, but only with what it could fetch. Missing parts come back <code>null</code>, with an error naming the subgraph.</p>
       <div class="timeline" id="fed-timeline"><p class="status">Run it.</p></div>
       <div class="pane-title">Answer</div>
@@ -38,7 +40,7 @@
       <pre class="console" id="fed-log"></pre>
     </section>
     <section class="panel evt">
-      <h2>Event-driven projection</h2>
+      <h2>Event-driven projections</h2>
       <p class="desc">The query service never calls HR, Employment or Security, so their outage does not reach it. The cost: the answer is only as fresh as the last event.</p>
       <div class="timeline" id="evt-timeline"><p class="status">Run it.</p></div>
       <div class="pane-title">Answer</div>

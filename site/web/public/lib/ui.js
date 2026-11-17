@@ -1,5 +1,6 @@
 // Small DOM helpers shared by the lesson pages.
 const LESSONS = [
+  ["/start/", "Start here"],
   ["/read/", "One question, three services"],
   ["/failure/", "When a service goes down"],
   ["/write/", "Write, then read"],

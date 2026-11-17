@@ -10,9 +10,11 @@
 <body>
 <main>
   <h1>Write, then read</h1>
-  <p class="lead">HR hires someone. Create them in both architectures, then read them back straight away.
-    Federation writes to the owner and reads from the owner, so the new person is there at once.
-    The event-driven side writes to the owner too, but reads from a copy that an event has to reach first.</p>
+  <p class="lead">HR hires someone. Create them through both patterns, then read them back straight away.
+    With federated services the write goes to the service that owns the data and the read comes from that same service, so the new person is there at once.
+    With event-driven projections the write also goes to the owner, but reads come from a copy: the owner stores an event in its outbox, a relay
+    publishes it to a topic, and a consumer applies it to the projection. Until that has happened, a read finds nothing. This gap is what
+    "eventual consistency" means in practice, and the lesson measures it.</p>
 
   <div class="panel">
     <div class="bar">
@@ -25,7 +27,7 @@
 
   <div class="cols">
     <section class="panel fed">
-      <h2>GraphQL Federation</h2>
+      <h2>Federated services</h2>
       <p class="desc">Mutation → router → HR subgraph → HR database. The response means the row is committed where every read will look.</p>
       <pre id="fed-code">mutation {
   createPerson(name: "…", email: "…") { id name }
@@ -37,7 +39,7 @@
       <pre class="console" id="fed-log"></pre>
     </section>
     <section class="panel evt">
-      <h2>Event-driven projection</h2>
+      <h2>Event-driven projections</h2>
       <p class="desc">POST → HR events service → HR database <em>and</em> outbox row, one transaction. The response comes back now; the projection catches up after.</p>
       <pre id="evt-code">POST /api/persons
 { "name": "…", "email": "…", "hireDate": "…" }</pre>

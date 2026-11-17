@@ -3,28 +3,35 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lunch & Learn: Federation vs Event-Driven Projections</title>
-<meta name="description" content="Interactive Lunch & Learn: GraphQL Federation and event-driven projections side by side, running live on Cloudflare.">
+<title>Lunch & Learn: Federated Services vs Event-Driven Projections</title>
+<meta name="description" content="Interactive Lunch & Learn: Federated Services vs Event-Driven Projections, two patterns for combining data owned by different services, running live side by side.">
 <link rel="stylesheet" href="/styles.css">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='9' cy='16' r='6' fill='%232563eb'/%3E%3Ccircle cx='23' cy='16' r='6' fill='%2316a34a'/%3E%3C/svg%3E">
 </head>
 <body>
 <main>
   <h1>Lunch &amp; Learn</h1>
-  <p class="lead">Interactive examples of one architecture question: compose data on every request with
-    <strong style="color:var(--fed)">GraphQL Federation</strong>, or copy it ahead of time with
-    <strong style="color:var(--evt)">event-driven projections</strong>? Both run live, side by side, on Cloudflare.
-    Pick a lesson to run it.</p>
+  <p class="lead">Short, hands-on lessons for engineers. Each topic takes one design question and runs the competing patterns
+    live, side by side, so you can run them, slow them down, break them and time them yourself instead of taking a slide's word for it.
+    Nothing to install: pick a lesson and press play. Start with the first one if the terms are new to you.</p>
 
   <section class="topic">
-    <h2>🧩 Federation vs event-driven projections</h2>
-    <p class="lead">One domain, three teams: HR owns people, Employment owns jobs, Security owns badges. Every lesson asks both architectures the same thing.</p>
+    <h2>🧩 Federated Services vs Event-Driven Projections</h2>
+    <p class="lead">Most companies split their software by <em>domain</em>: one service owns people, another owns jobs, another owns
+      security badges, each with its own team and its own database. That keeps the teams independent, but a single screen often
+      needs data from several of them at once, and no one service has the whole answer. There are two common patterns for putting
+      the answer together.
+      <strong style="color:var(--fed)">Federated services</strong> ask every owning service at the moment of the request and combine the replies.
+      <strong style="color:var(--evt)">Event-driven projections</strong> have each service announce its changes as events, keep a combined copy
+      up to date from those events, and answer from the copy. These lessons run both against the same data and show what each one costs
+      in speed, freshness and failure.</p>
     <div class="cards">
-      <a class="card" href="/read/"><span class="n">1</span><h3>One question, three services</h3><p>Who is person-001? Watch the router plan the query and fan out, against one local read.</p></a>
+      <a class="card" href="/start/"><span class="n">Start here</span><h3>The problem and the two patterns</h3><p>Domains, domain services, and why one screen needs three of them. Both patterns explained, with every term defined.</p></a>
+      <a class="card" href="/read/"><span class="n">1</span><h3>One question, three services</h3><p>Who is person-001? Watch the router plan the query and call three services, against one local read.</p></a>
       <a class="card" href="/failure/"><span class="n">2</span><h3>When a service goes down</h3><p>Switch a team's service off. One answer goes partial, the other goes stale.</p></a>
       <a class="card" href="/write/"><span class="n">3</span><h3>Write, then read</h3><p>Create a person in both. Follow the event from outbox to projection, and race it.</p></a>
       <a class="card" href="/bus/"><span class="n">4</span><h3>When the bus stops</h3><p>Stop the broker or the consumer. Writes still succeed; the read side falls behind, then catches up.</p></a>
-      <a class="card" href="/tradeoffs/"><span class="n">5</span><h3>So which one?</h3><p>Latency, freshness, coupling, failure and complexity, with the numbers you just measured.</p></a>
+      <a class="card" href="/tradeoffs/"><span class="n">5</span><h3>So which one?</h3><p>Latency, freshness, coupling, failure and complexity, with numbers you measure yourself.</p></a>
       <a class="card" href="/port/"><span class="n">6</span><h3>How this runs on Cloudflare</h3><p>Quarkus, Apollo Router, Kafka and Postgres, and what replaced each.</p></a>
     </div>
   </section>

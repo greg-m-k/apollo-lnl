@@ -1,4 +1,4 @@
-# Lunch & Learn: Federation vs Event-Driven Projections, on Cloudflare
+# Lunch & Learn: Federated Services vs Event-Driven Projections, on Cloudflare
 
 A Lunch & Learn that compares patterns: the same question answered by each, running side by side. Two patterns so far; a new one is a new folder under `patterns/`.
 Built from [apollo-federation-vs-kafka-projections-demo](https://github.com/greg-m-k/apollo-federation-vs-kafka-projections-demo)

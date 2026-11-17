@@ -10,8 +10,10 @@
 <body>
 <main>
   <h1>When the bus stops</h1>
-  <p class="lead">The event-driven side decouples writes from reads. That holds even when the parts in between fail.
-    Stop the broker or the consumer, keep writing, and watch the source of truth and the projection drift apart, then meet again.</p>
+  <p class="lead">The event-driven pattern has more moving parts between a write and a read: an outbox, a relay, a broker and a consumer. This lesson
+    breaks them on purpose. Stop the broker, or pause the consumer, and keep writing. The writes still succeed, because the owning service only
+    needs its own database. The projection falls behind, then catches up when you switch things back on, and no event is lost: the outbox holds
+    events the broker has not taken, and the queue holds events the consumer has not applied. Federated services have none of these parts to stop.</p>
 
   <div class="panel evt">
     <h2>1. A person of your own</h2>

@@ -10,8 +10,11 @@
 <body>
 <main>
   <h1>One question, three services</h1>
-  <p class="lead">"Who is this person, what is their job, and what badge do they carry?" Three teams own those three answers.
-    Federation asks all three, live, on every request. The event-driven side asks one service that already holds a copy.</p>
+  <p class="lead">A reception screen asks one question: who is this person, what is their job, and what badge do they carry?
+    Three domain services own those three answers: HR, Employment and Security, each with its own database.
+    <strong>Federated services</strong> ask all three at the moment of the request: a router works out a query plan, calls each service and combines the replies.
+    <strong>Event-driven projections</strong> ask one query service, which reads a combined copy that was built earlier from the three services' events.
+    Run both and compare where the time goes. New to these terms? <a href="/start/">Start here</a>.</p>
 
   <div class="panel">
     <div class="bar">
@@ -29,7 +32,7 @@
 
   <div class="cols">
     <section class="panel fed">
-      <h2>GraphQL Federation</h2>
+      <h2>Federated services</h2>
       <p class="desc">One query to the router. It plans: fetch the Person from HR, then ask Employment and Security for their parts in parallel.</p>
       <div class="pane-title">Query</div>
       <pre id="fed-code"></pre>
@@ -42,7 +45,7 @@
       <pre class="console" id="fed-log"></pre>
     </section>
     <section class="panel evt">
-      <h2>Event-driven projection</h2>
+      <h2>Event-driven projections</h2>
       <p class="desc">One REST call to the query service. It reads three local tables that a consumer filled from events earlier.</p>
       <div class="pane-title">Request</div>
       <pre id="evt-code"></pre>
