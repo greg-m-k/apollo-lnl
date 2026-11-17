@@ -128,6 +128,18 @@ test("the two patterns keep their colours in the text that names them", async ()
   assert.equal(await colour(".panel.evt > h2"), "rgb(22, 163, 74)");
 });
 
+test("the page ends shortly after the footer: no empty space to scroll into", async () => {
+  for (const path of ["", "start/", "read/", "bus/", "port/"]) {
+    await page.goto(`${BASE}/${path}`);
+    const gap = await page.evaluate(() => {
+      const text = document.createRange();
+      text.selectNodeContents(document.querySelector("footer"));
+      return document.documentElement.scrollHeight - (text.getBoundingClientRect().bottom + scrollY);
+    });
+    assert.ok(gap <= 40, `${path || "home"}: ${Math.round(gap)}px below the footer text`);
+  }
+});
+
 test("every page fits a phone screen without sideways scrolling", async () => {
   await page.setViewportSize({ width: 390, height: 800 });
   for (const path of ["", "start/", "read/", "failure/", "write/", "bus/", "tradeoffs/", "port/"]) {

@@ -18,7 +18,7 @@
 * { box-sizing: border-box; }
 html { font-size: 112.5%; -webkit-text-size-adjust: 100%; }
 body { margin: 0; background: var(--bg); color: var(--text); font: 1rem/1.6 var(--sans); }
-main { max-width: 1224px; margin: 0 auto; padding: 16px 18px 64px; }
+main { max-width: 1224px; margin: 0 auto; padding: 16px 18px 24px; }
 a { color: var(--fed); }
 h1 { font-size: clamp(1.6rem, 5vw, 2.4rem); line-height: 1.15; margin: .4em 0 .2em; letter-spacing: -.01em; }
 h2 { font-size: 1.25rem; margin: 0 0 .25em; }
@@ -55,7 +55,7 @@ button:disabled { opacity: .5; cursor: default; }
 .crumbs a[aria-current="page"] { background: var(--text); border-color: var(--text); color: var(--bg); font-weight: 600; }
 
 /* Home, after lnl.sam-peterson.com: plain header, topic sections, quiet cards */
-main.home { max-width: 1224px; padding: 45px 18px 72px; display: flex; flex-direction: column; gap: 45px; }
+main.home { max-width: 1224px; padding: 45px 18px 0; display: flex; flex-direction: column; gap: 45px; }
 .home h1 { font-size: 2.6rem; margin: 0; letter-spacing: -.02em; line-height: 1.15; }
 .home header p, .topic > p { color: var(--muted); line-height: 1.5; margin: .4em 0 0; }
 .topic h2 { font-size: 1.25rem; margin: 0; }
@@ -65,8 +65,8 @@ main.home { max-width: 1224px; padding: 45px 18px 72px; display: flex; flex-dire
 .card:hover { border-color: var(--muted); }
 .card h3 { font-size: 1rem; margin: 0; }
 .card p { color: var(--muted); line-height: 1.5; margin: .4em 0 0; }
-footer.site { border-top: 1px solid var(--border); padding: 22px 46px 80px; color: var(--faint); font-size: .8rem; }
-@media (max-width: 560px) { main.home { padding-top: 28px; gap: 32px; } .home h1 { font-size: 2.1rem; } footer.site { padding: 20px 18px 48px; } }
+footer.site { border-top: 1px solid var(--border); margin-top: 45px; padding: 22px 46px 24px; color: var(--faint); font-size: .8rem; }
+@media (max-width: 560px) { main.home { padding-top: 28px; gap: 32px; } .home h1 { font-size: 2.1rem; } footer.site { margin-top: 32px; padding: 20px 18px 24px; } }
 
 /* Demo panels */
 .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin: 16px 0; }
