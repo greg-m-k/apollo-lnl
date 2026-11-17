@@ -33,6 +33,9 @@ const resolvers = {
     // A write goes straight to the owner's database. When this returns, every read sees it.
     createPerson: async (_, { name, email, hireDate }, ctx) => {
       const person = { id: `person-${crypto.randomUUID().slice(0, 8)}`, name, email, hireDate: hireDate ?? null, active: true };
+      // Email identifies a person, so HR refuses a second one with the same address.
+      if (await first(ctx, `SELECT id FROM persons WHERE email = ? AND ${MINE}`, email, ctx.session))
+        throw new GraphQLError("HR already has a person with this email", { extensions: { code: "DUPLICATE_EMAIL" } });
       await run(ctx, "INSERT INTO persons (id, session, name, email, hire_date, active) VALUES (?, ?, ?, ?, ?, 1)",
         person.id, visitor(ctx), name, email, person.hireDate);
       return person;

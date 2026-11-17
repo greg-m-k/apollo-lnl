@@ -19,8 +19,15 @@ async function federationSide(name, email) {
   $("#fed-code").textContent = mutation;
   const w = await federation(mutation);
   const id = w.body.data?.createPerson?.id;
-  if (!id) return fedLog.log(`write failed: ${w.body.errors?.[0]?.message}`, "err");
+  if (!id) return refused($("#fed-read"), fedLog, w.body.errors?.[0]?.message ?? "no id returned");
   showReadBack(w, id, await federation(`{ person(id: "${id}") { id name } }`));
+}
+
+// The owner turned the write down: nothing was created, so there is nothing to read back.
+function refused(node, log, reason) {
+  verdict(node, reason, "fail");
+  log.log(`write refused: ${reason}`, "err");
+  return reason;
 }
 
 function showReadBack(w, id, r) {
@@ -40,7 +47,7 @@ async function eventSide(name, email) {
   const w = await rest("hr-events/persons", { method: "POST", body });
   if (!w.ok) {
     pipeline($("#pipeline"), { write: { status: "fail" } });
-    return evtLog.log(`write failed: ${w.status} ${JSON.stringify(w.data)}`, "err");
+    return refused($("#evt-read"), evtLog, w.data?.error ?? `HTTP ${w.status}`);
   }
   pipeline($("#pipeline"), { write: { status: "done", ms: w.server }, relay: { status: "wait" } });
   evtLog.log(`created ${w.data.id}: API answered in ${w.total}ms (DB + outbox ${w.details?.db ?? "?"}ms)`, "ok");
@@ -72,6 +79,8 @@ $("#run").addEventListener("click", busy($("#run"), async () => {
   const email = $("#email").value.trim();
   if (!name || !email) return;
   say($("#status"), "Writing…", "wait");
-  await Promise.all([federationSide(name, email), eventSide(name, email)]);
-  say($("#status"), "Done. Try again with another name.", "ok");
+  for (const node of [$("#fed-read"), $("#evt-read")]) verdict(node, "–", "faint");  // no result from the last run lingers
+  const reasons = (await Promise.all([federationSide(name, email), eventSide(name, email)])).filter(Boolean);
+  if (reasons.length) say($("#status"), `${reasons[0]}. Change the name or email and try again.`, "err");
+  else say($("#status"), "Done. Try again with another name.", "ok");
 }));

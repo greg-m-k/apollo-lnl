@@ -36,6 +36,9 @@ async function getPerson(c) {
 async function createPerson(c) {
   const { name, email, hireDate = null } = c.body ?? {};
   if (!name || !email) return json(400, { error: "name and email are required" });
+  // Email identifies a person, so HR refuses a second one with the same address.
+  if (await c.db.prepare(`SELECT id FROM persons WHERE email = ? AND ${MINE}`).bind(email, c.session).first())
+    return json(409, { error: "HR already has a person with this email", email });
   const person = { id: `person-${crypto.randomUUID().slice(0, 8)}`, name, email, hireDate, active: true };
   await commitWithEvent(c, "PersonCreated", person, c.db.prepare(
     "INSERT INTO persons (id, session, name, email, hire_date, active) VALUES (?, ?, ?, ?, ?, 1)",

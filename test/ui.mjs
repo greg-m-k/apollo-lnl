@@ -67,6 +67,30 @@ test("write: federation reads back at once, the projection after propagation", a
   await shot("write");
 });
 
+test("write: the same name twice is refused by both owners, and the page says so", async () => {
+  await page.goto(`${BASE}/write/`);
+  await page.fill("#name", `Twice ${Date.now() % 100000}`);
+  await page.dispatchEvent("#name", "input");
+  await page.click("#run");
+  await page.waitForFunction(() => /Done/.test(document.querySelector("#status").textContent), null, { timeout: 20000 });
+  await page.click("#run");
+  await page.waitForFunction(() => /already/.test(document.querySelector("#status").textContent), null, { timeout: 20000 });
+  for (const id of ["#fed-read", "#evt-read", "#fed-log", "#evt-log"])
+    assert.match(await page.textContent(id), /already has a person with this email/, id);
+  assert.doesNotMatch(await page.textContent("#evt-log"), /<html|D1_ERROR/i);
+  assert.doesNotMatch(await page.textContent("#fed-log"), /D1_ERROR/);
+});
+
+test("read: the first run's extra time is explained, and the console says when a service had just started", async () => {
+  await page.goto(`${BASE}/read/`);
+  assert.match(await page.textContent("#first-run"), /first run/i);
+  await page.click("#run");
+  await page.waitForFunction(() => /Federation \d+ms/.test(document.querySelector("#status").textContent));
+  // Every answer says how many requests that copy of the router and the query service had served.
+  assert.match(await page.textContent("#fed-log"), /router request #\d+/);
+  assert.match(await page.textContent("#evt-log"), /query service request #\d+/);
+});
+
 test("bus: with the broker down a rename waits, then catches up", async () => {
   await page.goto(`${BASE}/bus/`);
   await page.click("#create");
@@ -201,5 +225,5 @@ test("port page renders and nothing logged an error", async () => {
   assert.match(await page.textContent(".lead"), /docker compose up --build/);
   await shot("port");
   // A 404 from the API is an answer, not an error: a read that races an event, or a poll until it lands.
-  assert.deepEqual(errors.filter((e) => !/status of 404.* at .*\/api\//.test(e)), []);
+  assert.deepEqual(errors.filter((e) => !/status of 40[49].* at .*\/api\//.test(e)), []);
 });
