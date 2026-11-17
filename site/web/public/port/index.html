@@ -10,7 +10,9 @@
 <body>
 <main>
   <h1>How this runs on Cloudflare</h1>
-  <p class="lead">The original demo runs on Kubernetes with Tilt: Quarkus services, the Apollo Router, Kafka and Postgres.
+  <p class="lead">The <a href="https://github.com/greg-m-k/apollo-federation-vs-kafka-projections-demo">original demo</a> runs Quarkus services,
+    the Apollo Router, Kafka and Postgres. It runs on your laptop too: clone it and run <code>docker compose up --build</code> with
+    only Docker installed, or use its bootstrap script for the Kubernetes and Tilt setup.
     This Lunch &amp; Learn runs the same domain, schemas, seed data and APIs as eleven Cloudflare Workers.
     Each pattern has its own folder: <code>patterns/federation/</code> and <code>patterns/event-projections/</code>. Every service is one self-contained file
     with its own database, as each was its own Quarkus project: nothing is shared between them.</p>

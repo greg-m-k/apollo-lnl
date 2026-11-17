@@ -152,6 +152,8 @@ test("every page fits a phone screen without sideways scrolling", async () => {
 test("port page renders and nothing logged an error", async () => {
   await page.goto(`${BASE}/port/`);
   assert.match(await page.textContent("h1"), /Cloudflare/);
+  assert.equal(await page.locator('.lead a[href="https://github.com/greg-m-k/apollo-federation-vs-kafka-projections-demo"]').count(), 1);
+  assert.match(await page.textContent(".lead"), /docker compose up --build/);
   await shot("port");
   // A 404 from the API is an answer, not an error: a read that races an event, or a poll until it lands.
   assert.deepEqual(errors.filter((e) => !/status of 404.* at .*\/api\//.test(e)), []);
