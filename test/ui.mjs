@@ -22,7 +22,10 @@ test("home lists the start page and the six lessons", async () => {
   await page.goto(BASE);
   assert.equal(await page.locator(".card").count(), 7);
   assert.match(await page.textContent(".lead"), /Nothing here is mocked/);
-  assert.ok(await page.locator('a[href="https://github.com/greg-m-k/apollo-lnl"]').count() >= 2);
+  // The source belongs to the topic it teaches, not to the page's opening summary.
+  const repo = 'a[href="https://github.com/greg-m-k/apollo-lnl"]';
+  assert.equal(await page.locator(`header ${repo}, footer ${repo}`).count(), 0);
+  assert.equal(await page.locator(`.topic ${repo}`).count(), 1);
   await shot("home");
 });
 
