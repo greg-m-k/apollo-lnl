@@ -10,50 +10,33 @@
 </head>
 <body>
 <main class="home">
-  <header class="hero">
-    <p class="eyebrow">Lunch &amp; Learn</p>
-    <h1>Learn it by running it.</h1>
-    <p class="lead">A Lunch &amp; Learn is a format, and this page is an invitation to copy it. Nothing here is mocked: every router,
-      service, database, queue and consumer below is really running, and every number on screen is measured while you watch.
-      Run it, slow a service down, switch one off, time it, and see what each pattern costs instead of taking a slide's word for it.</p>
-    <ol class="steps">
-      <li><b>Pick a question</b><span>One design argument your team keeps having.</span></li>
-      <li><b>Build every answer for real</b><span>Real services, real data, real failures. No diagrams standing in for code.</span></li>
-      <li><b>Let people break it</b><span>Put the answers side by side, hand over the switches, and let the numbers settle it.</span></li>
-    </ol>
-    <p class="cta"><a class="button" href="https://github.com/greg-m-k/apollo-lnl">Fork this one on GitHub</a>
-      <span>and build your own on a question your team cares about.</span></p>
+  <header>
+    <h1>Lunch &amp; Learn</h1>
+    <p class="lead">A Lunch &amp; Learn is a format, and this page is an invitation to copy it. Take one design question your team keeps
+      arguing about, build every competing answer for real, and run them side by side. Nothing here is mocked: every router, service,
+      database, queue and consumer is really running, and every number on screen is measured while you watch. Learn by doing: run it,
+      slow a service down, switch one off, and see what each pattern costs instead of taking a slide's word for it. Then build your own.
+      The <a href="https://github.com/greg-m-k/apollo-lnl">source for this one is on GitHub</a>.</p>
   </header>
 
-  <section class="topic">
-    <p class="eyebrow">Topic</p>
-    <h2>Federated Services vs Event-Driven Projections</h2>
+  <section class="topic" aria-labelledby="topic-0">
+    <h2 id="topic-0"><span aria-hidden="true">🧩</span> Federated Services vs Event-Driven Projections</h2>
     <p>Most companies split their software by <em>domain</em>: one service owns people, another owns jobs, another owns security
-      badges, each with its own team and its own database. That keeps teams independent, but a single screen often needs data from
-      several of them at once, and no one service has the whole answer. There are two common patterns for putting it together.</p>
-    <div class="patterns">
-      <div class="pattern fed"><b>Federated services</b><span>Ask every owning service at the moment of the request and combine the replies.</span></div>
-      <div class="pattern evt"><b>Event-driven projections</b><span>Each service announces its changes as events; keep a combined copy up to date and answer from it.</span></div>
-    </div>
-    <p>These lessons run both against the same data and show what each one costs in speed, freshness and failure.</p>
-
-    <div class="cards">
-      <a class="card featured" href="/start/"><span class="n">Start here</span><h3>The problem and the two patterns</h3><p>Domains, domain services, and why one screen needs three of them. Both patterns explained, with every term defined.</p></a>
-      <a class="card" href="/read/"><span class="n">1</span><h3>One question, three services</h3><p>Who is person-001? Watch the router plan the query and call three services, against one local read.</p></a>
-      <a class="card" href="/failure/"><span class="n">2</span><h3>When a service goes down</h3><p>Switch a team's service off. One answer goes partial, the other goes stale.</p></a>
-      <a class="card" href="/write/"><span class="n">3</span><h3>Write, then read</h3><p>Create a person in both. Follow the event from outbox to projection, and race it.</p></a>
-      <a class="card" href="/bus/"><span class="n">4</span><h3>When the bus stops</h3><p>Stop the broker or the consumer. Writes still succeed; the read side falls behind, then catches up.</p></a>
-      <a class="card" href="/tradeoffs/"><span class="n">5</span><h3>So which one?</h3><p>Latency, freshness, coupling, failure and complexity, with numbers you measure yourself.</p></a>
-      <a class="card" href="/port/"><span class="n">6</span><h3>How this runs on Cloudflare</h3><p>Quarkus, Apollo Router, Kafka and Postgres, and what replaced each.</p></a>
-    </div>
-
-    <a class="repo" href="https://github.com/greg-m-k/apollo-lnl">
-      <b>github.com/greg-m-k/apollo-lnl</b>
-      <span>Each pattern lives in its own folder, one plain file per service, so you can read a pattern straight through.</span>
-    </a>
+      badges, each with its own team and database. A single screen often needs all three. <strong>Federated services</strong> ask every
+      owning service at the moment of the request and combine the replies. <strong>Event-driven projections</strong> keep a combined copy
+      up to date from each service's events and answer from that. These lessons run both against the same data and measure what each costs
+      in speed, freshness and failure.</p>
+    <ul class="cards">
+      <li><a class="card" href="/start/"><h3>Start here: the problem and the two patterns</h3><p>Domains, domain services, and why one screen needs three of them. Both patterns explained, with every term defined.</p></a></li>
+      <li><a class="card" href="/read/"><h3>One question, three services</h3><p>Who is person-001? Watch the router plan the query and call three services, against one local read.</p></a></li>
+      <li><a class="card" href="/failure/"><h3>When a service goes down</h3><p>Switch a team's service off. One answer goes partial, the other goes stale.</p></a></li>
+      <li><a class="card" href="/write/"><h3>Write, then read</h3><p>Create a person in both. Follow the event from outbox to projection, and race it.</p></a></li>
+      <li><a class="card" href="/bus/"><h3>When the bus stops</h3><p>Stop the broker or the consumer. Writes still succeed; the read side falls behind, then catches up.</p></a></li>
+      <li><a class="card" href="/tradeoffs/"><h3>So which one?</h3><p>Latency, freshness, coupling, failure and complexity, with numbers you measure yourself.</p></a></li>
+      <li><a class="card" href="/port/"><h3>How this runs on Cloudflare</h3><p>Quarkus, Apollo Router, Kafka and Postgres, and what replaced each.</p></a></li>
+    </ul>
   </section>
-
-  <footer>People you create are yours alone and are cleared 20 minutes after you make them.</footer>
 </main>
+<footer class="site">People you create are yours alone and are cleared 20 minutes after you make them. · <a href="https://github.com/greg-m-k/apollo-lnl">Source on GitHub</a></footer>
 </body>
 </html>
