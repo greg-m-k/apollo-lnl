@@ -94,6 +94,14 @@ test("tradeoffs: measures both paths", async () => {
   await shot("tradeoffs");
 });
 
+test("blue and green belong to the two patterns: only their own panels carry them", async () => {
+  for (const path of ["start/", "read/", "failure/", "write/", "bus/", "tradeoffs/", "port/"]) {
+    await page.goto(`${BASE}/${path}`);
+    for (const h of await page.locator(".panel.fed > h2").allTextContents()) assert.match(h, /^Federated services/, path);
+    for (const h of await page.locator(".panel.evt > h2").allTextContents()) assert.match(h, /^Event-driven projections/, path);
+  }
+});
+
 test("every page fits a phone screen without sideways scrolling", async () => {
   await page.setViewportSize({ width: 390, height: 800 });
   for (const path of ["", "start/", "read/", "failure/", "write/", "bus/", "tradeoffs/", "port/"]) {
