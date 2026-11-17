@@ -140,6 +140,18 @@ test("the page ends shortly after the footer: no empty space to scroll into", as
   }
 });
 
+test("start here: headings stand out from body text in light and dark", async () => {
+  for (const scheme of ["light", "dark"]) {
+    const p = await browser.newPage({ colorScheme: scheme });
+    await p.goto(`${BASE}/start/`);
+    const [h2, body, strong] = await p.evaluate(() => ["main > h2", "main > p:not(.lead)", "main > p strong"]
+      .map((s) => getComputedStyle(document.querySelector(s)).color));
+    assert.notEqual(body, h2, `${scheme}: body text is as bright as headings`);
+    assert.equal(strong, h2, `${scheme}: defined terms keep heading brightness`);
+    await p.close();
+  }
+});
+
 test("every page fits a phone screen without sideways scrolling", async () => {
   await page.setViewportSize({ width: 390, height: 800 });
   for (const path of ["", "start/", "read/", "failure/", "write/", "bus/", "tradeoffs/", "port/"]) {

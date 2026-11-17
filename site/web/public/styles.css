@@ -1,7 +1,7 @@
 :root {
   color-scheme: light dark;
   --bg: #f7f7f8; --surface: #fff; --surface-2: #f0f0f3; --card-end: #fafafb; --code-bg: #e6e6ec; --border: #dcdce2; --grid: #ececf0;
-  --text: #18181b; --muted: #52525b; --faint: #8a8a94;
+  --text: #18181b; --body: #3f3f46; --muted: #52525b; --faint: #8a8a94;
   --fed: #2563eb; --fed-bg: #2563eb1a; --evt: #16a34a; --evt-bg: #16a34a1a;
   --fail: #dc2626; --fail-bg: #ef44441f; --wait: #ca8a04; --wait-bg: #facc1533;
   --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -10,7 +10,7 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #0a0a0b; --surface: #161618; --surface-2: #1f1f23; --card-end: #121214; --code-bg: #050506; --border: #2c2c31; --grid: #1f1f24;
-    --text: #ececf0; --muted: #a1a1aa; --faint: #6b6b74;
+    --text: #ececf0; --body: #b8b8c0; --muted: #a1a1aa; --faint: #6b6b74;
     --fed: #60a5fa; --fed-bg: #3b82f62a; --evt: #4ade80; --evt-bg: #22c55e24;
     --fail: #ef4444; --wait: #facc15;
   }
@@ -24,11 +24,15 @@ h1 { font-size: clamp(1.6rem, 5vw, 2.4rem); line-height: 1.15; margin: .4em 0 .2
 h2 { font-size: 1.25rem; margin: 0 0 .25em; }
 h3 { font-size: 1rem; margin: 0 0 .2em; }
 p { margin: .4em 0 .8em; }
+/* Body text a step softer than headings, so headings and defined terms carry the page. */
+p, li, dd { color: var(--body); }
+p strong, li strong, dd strong { color: var(--text); }
 .lead { color: var(--muted); }
 /* Each pattern keeps one colour wherever it is named: prose, panel headings, timeline bars. */
 .fed-name { color: var(--fed); } .evt-name { color: var(--evt); }
 .panel.fed > h2 { color: var(--fed); } .panel.evt > h2 { color: var(--evt); }
-.prose > h2 { margin-top: 1.6em; }
+.prose > h2 { font-size: 1.45rem; margin: 2em 0 .5em; }
+.prose > p, .prose > ol { line-height: 1.7; margin-bottom: 1em; }
 .prose .panel p, .prose .panel dl { font-size: .97rem; }
 .prose > p, .prose > ol { max-width: none; }
 .prose > .lead { font-size: 1.08rem; }
