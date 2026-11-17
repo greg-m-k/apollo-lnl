@@ -91,6 +91,48 @@ test("read: the first run's extra time is explained, and the console says when a
   assert.match(await page.textContent("#evt-log"), /query service request #\d+/);
 });
 
+test("read: data age is explained and broken down by part, beside the speed it buys", async () => {
+  await page.goto(`${BASE}/read/`);
+  assert.match(await page.textContent("#data-age"), /oldest of the three parts/);
+  assert.match(await page.textContent("#evt-feed"), /consumer/);  // the background feed behind the one-hop read
+  await page.click("#run");
+  await page.waitForFunction(() => /Federation \d+ms/.test(document.querySelector("#status").textContent));
+  const answer = await page.textContent("#evt-result");
+  for (const row of ["data age (oldest part)", "person updated", "employee updated", "badge updated"]) assert.ok(answer.includes(row), row);
+  assert.match(await page.textContent("#status"), /Federation \d+ms, live · Projection \d+ms, data .+ old/);
+});
+
+test("read: the console splits federation's time into network, the router's own work, and each subgraph with its database", async () => {
+  await page.goto(`${BASE}/read/`);
+  await page.click("#run");
+  await page.waitForFunction(() => /Federation \d+ms/.test(document.querySelector("#status").textContent));
+  const log = await page.textContent("#fed-log");
+  for (const s of ["hr", "employment", "security"]) assert.match(log, new RegExp(`${s} \\d+ms \\(DB \\d+ms\\)`), s);
+  assert.match(log, /network and site \d+ms/);
+  assert.match(log, /router's own work \d+ms/);
+  assert.match(await page.textContent("#fed-db-note"), /included in/);
+});
+
+test("write: the status compares how soon each side's new person can be read", async () => {
+  await page.goto(`${BASE}/write/`);
+  await page.fill("#name", `Soon ${Date.now() % 100000}`);
+  await page.dispatchEvent("#name", "input");
+  await page.click("#run");
+  await page.waitForFunction(() => /readable/.test(document.querySelector("#status").textContent), null, { timeout: 20000 });
+  assert.match(await page.textContent("#status"), /Federation readable after \d+ms · Projection readable after \d+ms \(write \d+ms \+ propagation \d+ms\)/);
+});
+
+test("tradeoffs: the numbers are labelled as a teaching setup, and writes with a part down have a row", async () => {
+  await page.goto(`${BASE}/tradeoffs/`);
+  assert.match(await page.textContent("#about-numbers"), /teaching setup.*Production numbers will differ/s);
+  assert.match(await page.textContent("main"), /Writes with a part down/);
+});
+
+test("start here: further reading links Apollo on query plans", async () => {
+  await page.goto(`${BASE}/start/`);
+  assert.equal(await page.locator('#further-reading a[href="https://www.apollographql.com/docs/graphos/schema-design/federated-schemas/reference/query-plans"]').count(), 1);
+});
+
 test("bus: with the broker down a rename waits, then catches up", async () => {
   await page.goto(`${BASE}/bus/`);
   await page.click("#create");
@@ -129,6 +171,9 @@ test("blue and green belong to the two patterns: only their own panels carry the
     await page.goto(`${BASE}/${path}`);
     for (const h of await page.locator(".panel.fed > h2").allTextContents()) assert.match(h, /^Federated services/, path);
     for (const h of await page.locator(".panel.evt > h2").allTextContents()) assert.match(h, /^Event-driven projections/, path);
+    // The colour is in the heading only: no coloured bar along the top of any panel.
+    const tops = await page.locator(".panel").evaluateAll((ps) => ps.map((p) => getComputedStyle(p).borderTopWidth));
+    for (const top of tops) assert.equal(top, "1px", `${path}: a panel has a ${top} top border`);
   }
 });
 

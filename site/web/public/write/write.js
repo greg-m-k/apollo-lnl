@@ -21,13 +21,14 @@ async function federationSide(name, email) {
   const id = w.body.data?.createPerson?.id;
   if (!id) return refused($("#fed-read"), fedLog, w.body.errors?.[0]?.message ?? "no id returned");
   showReadBack(w, id, await federation(`{ person(id: "${id}") { id name } }`));
+  return { readable: `Federation readable after ${w.total}ms` };  // the owner answered: every read sees it now
 }
 
 // The owner turned the write down: nothing was created, so there is nothing to read back.
 function refused(node, log, reason) {
   verdict(node, reason, "fail");
   log.log(`write refused: ${reason}`, "err");
-  return reason;
+  return { refused: reason };
 }
 
 function showReadBack(w, id, r) {
@@ -52,7 +53,10 @@ async function eventSide(name, email) {
   pipeline($("#pipeline"), { write: { status: "done", ms: w.server }, relay: { status: "wait" } });
   evtLog.log(`created ${w.data.id}: API answered in ${w.total}ms (DB + outbox ${w.details?.db ?? "?"}ms)`, "ok");
   await showRace(w.data.id);
-  await showPropagation(w.data.id, w.server);
+  const propagation = await showPropagation(w.data.id, w.server);
+  return { readable: propagation == null
+    ? "Projection not readable yet"
+    : `Projection readable after ${w.total + propagation}ms (write ${w.total}ms + propagation ${propagation}ms)` };
 }
 
 // The read that races the event: usually too early.
@@ -68,10 +72,14 @@ async function showPropagation(id, writeMs) {
     const r = await rest(`consumer/metrics/timing/${id}`);
     return r.ok && r.data;
   }, 250);
-  if (!t) return evtLog.log(`no propagation after ${waited}ms`, "err");
+  if (!t) {
+    evtLog.log(`no propagation after ${waited}ms`, "err");
+    return null;
+  }
   pipeline($("#pipeline"), fromTiming(writeMs, t));
   verdict($("#evt-read"), `found after ${t.totalPropagationMs}ms`, "evt");
   evtLog.log(`in the projection ${t.totalPropagationMs}ms after the write (relay ${t.outboxToQueueMs}ms, queue ${t.queueToConsumerMs}ms, consumer ${t.consumerToProjectionMs}ms)`, "ok");
+  return t.totalPropagationMs;
 }
 
 $("#run").addEventListener("click", busy($("#run"), async () => {
@@ -80,7 +88,8 @@ $("#run").addEventListener("click", busy($("#run"), async () => {
   if (!name || !email) return;
   say($("#status"), "Writing…", "wait");
   for (const node of [$("#fed-read"), $("#evt-read")]) verdict(node, "–", "faint");  // no result from the last run lingers
-  const reasons = (await Promise.all([federationSide(name, email), eventSide(name, email)])).filter(Boolean);
-  if (reasons.length) say($("#status"), `${reasons[0]}. Change the name or email and try again.`, "err");
-  else say($("#status"), "Done. Try again with another name.", "ok");
+  const sides = await Promise.all([federationSide(name, email), eventSide(name, email)]);
+  const refusal = sides.find((s) => s.refused)?.refused;
+  if (refusal) say($("#status"), `${refusal}. Change the name or email and try again.`, "err");
+  else say($("#status"), `Done. ${sides.map((s) => s.readable).join(" · ")}. Try again with another name.`, "ok");
 }));

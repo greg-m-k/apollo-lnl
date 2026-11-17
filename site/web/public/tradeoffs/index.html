@@ -21,6 +21,9 @@
       <span class="status" id="status">Ready</span>
     </div>
     <table class="kv" id="numbers"></table>
+    <p class="status" id="about-numbers">These numbers come from a teaching setup: small, unoptimised ports of each service on
+      Cloudflare Workers, with no caching, tuning or load. Use them to compare the shape of the two paths (one hop against several,
+      a wait for propagation). Production numbers will differ.</p>
   </div>
 
   <div class="panel">
@@ -31,6 +34,8 @@
       <tr><th>Service coupling</th><td>Tight: every owner must be up for a full answer</td><td>Loose: owners and readers meet only through the bus</td></tr>
       <tr><th>Failure mode</th><td>Partial or failed answers when an owner is down</td><td>Stale answers when anything upstream is down</td></tr>
       <tr><th>Read after write</th><td>Immediate</td><td>After propagation; needs a plan (wait, optimistic UI, or read the owner)</td></tr>
+      <tr><th>Writes with a part down</th><td>Fail when the router or HR is down</td><td>Fail when HR is down. With the bus down they
+        still succeed, and the copy catches up later (<a href="/bus/">When the bus stops</a>)</td></tr>
       <tr><th>Write complexity</th><td>Simple: one mutation to the owner</td><td>More: outbox, relay, idempotent consumer, replays</td></tr>
       <tr><th>Moving parts</th><td>Router and subgraphs</td><td>Plus topics, relays, consumers and projection stores</td></tr>
     </table>
